@@ -6,6 +6,7 @@ public partial class Weapon : Resource
 {
 	[Export] public string WeaponName { get; set; } = "Basic Sword";
 	[Export] public int BaseDamage { get; set; } = 1;
+	[Export] public int BaseArmorPiercing { get; set; } = 0;
 	[Export] public int MaxRuneCapacity { get; set; } = 2;
 	[Export] public float BaseCooldown { get; set; } = 2.0f;
 	
@@ -25,6 +26,21 @@ public partial class Weapon : Resource
 					totalDamage += rune.Value;
 			}
 			return totalDamage;
+		}
+	}
+	
+	// Calculate total armor piercing including rune bonuses
+	public int ArmorPiercing
+	{
+		get
+		{
+			int totalArmorPiercing = BaseArmorPiercing;
+			foreach (var rune in EquippedRunes)
+			{
+				if (rune.RuneType == RuneType.ArmorPiercing)
+					totalArmorPiercing += rune.Value;
+			}
+			return totalArmorPiercing;
 		}
 	}
 	

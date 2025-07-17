@@ -3,11 +3,12 @@ using System;
 
 public enum RuneType
 {
-	Damage,     // Increases attack damage
-	Speed,      // Reduces attack cooldown
-	Critical,   // Adds critical hit chance
-	Vampiric,   // Life steal on attack
-	Explosive   // Area damage
+	Damage,         // Increases attack damage
+	Speed,          // Reduces attack cooldown
+	Critical,       // Adds critical hit chance
+	Vampiric,       // Life steal on attack
+	Explosive,      // Area damage
+	ArmorPiercing   // Ignores enemy armor
 }
 
 public partial class Rune : Resource
@@ -55,6 +56,10 @@ public partial class Rune : Resource
 				RuneName = $"Rune of Explosion +{Value}";
 				Description = $"Deal {Value} damage to nearby enemies";
 				break;
+			case RuneType.ArmorPiercing:
+				RuneName = $"Rune of Piercing +{Value}";
+				Description = $"Ignores {Value} enemy armor";
+				break;
 		}
 	}
 	
@@ -76,6 +81,9 @@ public partial class Rune : Resource
 				break;
 			case RuneType.Explosive:
 				RuneColor = Colors.Purple;
+				break;
+			case RuneType.ArmorPiercing:
+				RuneColor = Colors.Silver;
 				break;
 		}
 	}

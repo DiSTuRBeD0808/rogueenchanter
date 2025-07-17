@@ -40,11 +40,19 @@ public static class LootSystem
 	public static List<Rune> GenerateRuneDraft(int playerLevel)
 	{
 		var runes = new List<Rune>();
-		var runeTypes = Enum.GetValues<RuneType>();
+		
+		// Define available rune types (excluding Critical and Explosive for now)
+		var availableRuneTypes = new RuneType[] 
+		{ 
+			RuneType.Damage, 
+			RuneType.Speed, 
+			RuneType.Vampiric, 
+			RuneType.ArmorPiercing 
+		};
 		
 		for (int i = 0; i < 4; i++)
 		{
-			var randomType = runeTypes[random.Next(runeTypes.Length)];
+			var randomType = availableRuneTypes[random.Next(availableRuneTypes.Length)];
 			int value = CalculateRuneValue(randomType, playerLevel);
 			runes.Add(new Rune(randomType, value));
 		}
@@ -69,6 +77,8 @@ public static class LootSystem
 				return baseValue; // 1-2 heal per attack
 			case RuneType.Explosive:
 				return baseValue; // 1-2 area damage
+			case RuneType.ArmorPiercing:
+				return baseValue; // 1-2 armor piercing
 			default:
 				return baseValue;
 		}

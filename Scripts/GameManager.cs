@@ -25,6 +25,7 @@ public partial class GameManager : Node
 	
 	// Stat panel elements
 	private VBoxContainer statPanel;
+	private VBoxContainer enemyStatPanel;
 	private Label playerLevelLabel;
 	private Label playerExpLabel;
 	private Label playerDamageLabel;
@@ -35,6 +36,10 @@ public partial class GameManager : Node
 	public override void _Ready()
 	{
 		GD.Print("🎮 GameManager: Starting setup...");
+		
+		// Add GameManager to group so enemies can find it
+		AddToGroup("game_manager");
+		
 		// Create the entire game scene programmatically
 		SetupScene();
 		GD.Print("🎮 GameManager: Setup complete!");
@@ -76,8 +81,8 @@ public partial class GameManager : Node
 		attackTimer.OneShot = true;
 		player.AddChild(attackTimer);
 
-		// Position player (center-left, above attack button)
-		player.Position = new Vector2(400, 250);
+		// Position player (center-left, below attack button and stat panels)
+		player.Position = new Vector2(400, 400);
 
 		GD.Print("🎨 Creating UI elements...");
 		// Create UI elements
@@ -158,6 +163,7 @@ public partial class GameManager : Node
 		
 		// Create comprehensive stat panel - positioned to the left of player
 		SetupStatPanel();
+		SetupEnemyStatPanel();
 
 		GD.Print("⚔️ Creating Weapon Details Button...");
 		// Weapon details button - moved below player info
@@ -704,6 +710,31 @@ public partial class GameManager : Node
 		playerCooldownLabel.AddThemeFontSizeOverride("font_size", 12);
 		statPanel.AddChild(playerCooldownLabel);
 		
+		// Add HP and defensive stats
+		var hpLabel = new Label();
+		hpLabel.Text = "HP: 100/100";
+		hpLabel.AddThemeColorOverride("font_color", Colors.Green);
+		hpLabel.AddThemeFontSizeOverride("font_size", 12);
+		statPanel.AddChild(hpLabel);
+		
+		var armorLabel = new Label();
+		armorLabel.Text = "Armor: 0";
+		armorLabel.AddThemeColorOverride("font_color", Colors.Gray);
+		armorLabel.AddThemeFontSizeOverride("font_size", 12);
+		statPanel.AddChild(armorLabel);
+		
+		var armorPiercingLabel = new Label();
+		armorPiercingLabel.Text = "Armor Piercing: 0";
+		armorPiercingLabel.AddThemeColorOverride("font_color", Colors.Yellow);
+		armorPiercingLabel.AddThemeFontSizeOverride("font_size", 12);
+		statPanel.AddChild(armorPiercingLabel);
+		
+		var hpRegenLabel = new Label();
+		hpRegenLabel.Text = "HP Regen: 1.0/s";
+		hpRegenLabel.AddThemeColorOverride("font_color", Colors.LightGreen);
+		hpRegenLabel.AddThemeFontSizeOverride("font_size", 12);
+		statPanel.AddChild(hpRegenLabel);
+		
 		// Add spacer
 		var spacer3 = new Control();
 		spacer3.CustomMinimumSize = new Vector2(0, 10);
@@ -736,19 +767,118 @@ public partial class GameManager : Node
 		goldLabel = playerGoldLabel;
 	}
 	
+	private void SetupEnemyStatPanel()
+	{
+		// Create enemy stat panel on the right side
+		enemyStatPanel = new VBoxContainer();
+		enemyStatPanel.Name = "EnemyStatPanel";
+		enemyStatPanel.Position = new Vector2(600, 80);  // Right side of screen
+		enemyStatPanel.Size = new Vector2(180, 300);
+		
+		// Background style
+		var enemyStatStyle = new StyleBoxFlat();
+		enemyStatStyle.BgColor = new Color(0.3f, 0.1f, 0.1f, 0.8f);  // Dark red background
+		enemyStatStyle.BorderColor = Colors.DarkRed;
+		enemyStatStyle.BorderWidthLeft = 2;
+		enemyStatStyle.BorderWidthRight = 2;
+		enemyStatStyle.BorderWidthTop = 2;
+		enemyStatStyle.BorderWidthBottom = 2;
+		enemyStatStyle.CornerRadiusTopLeft = 8;
+		enemyStatStyle.CornerRadiusTopRight = 8;
+		enemyStatStyle.CornerRadiusBottomLeft = 8;
+		enemyStatStyle.CornerRadiusBottomRight = 8;
+		enemyStatPanel.AddThemeStyleboxOverride("panel", enemyStatStyle);
+		ui.AddChild(enemyStatPanel);
+		
+		// Title
+		var enemyTitle = new Label();
+		enemyTitle.Text = "👹 Enemy Stats";
+		enemyTitle.AddThemeColorOverride("font_color", Colors.Red);
+		enemyTitle.AddThemeFontSizeOverride("font_size", 16);
+		enemyTitle.HorizontalAlignment = HorizontalAlignment.Center;
+		enemyStatPanel.AddChild(enemyTitle);
+		
+		// Spacer
+		var spacer = new Control();
+		spacer.CustomMinimumSize = new Vector2(0, 10);
+		enemyStatPanel.AddChild(spacer);
+		
+		// Enemy Level
+		var enemyLevelLabel = new Label();
+		enemyLevelLabel.Name = "EnemyLevelLabel";
+		enemyLevelLabel.Text = "Level: 1";
+		enemyLevelLabel.AddThemeColorOverride("font_color", Colors.Orange);
+		enemyLevelLabel.AddThemeFontSizeOverride("font_size", 14);
+		enemyStatPanel.AddChild(enemyLevelLabel);
+		
+		// Enemy HP
+		var enemyHpLabel = new Label();
+		enemyHpLabel.Name = "EnemyHpLabel";
+		enemyHpLabel.Text = "HP: 5/5";
+		enemyHpLabel.AddThemeColorOverride("font_color", Colors.Red);
+		enemyHpLabel.AddThemeFontSizeOverride("font_size", 12);
+		enemyStatPanel.AddChild(enemyHpLabel);
+		
+		// Enemy Damage
+		var enemyDamageLabel = new Label();
+		enemyDamageLabel.Name = "EnemyDamageLabel";
+		enemyDamageLabel.Text = "Damage: 3";
+		enemyDamageLabel.AddThemeColorOverride("font_color", Colors.DarkRed);
+		enemyDamageLabel.AddThemeFontSizeOverride("font_size", 12);
+		enemyStatPanel.AddChild(enemyDamageLabel);
+		
+		// Enemy Armor
+		var enemyArmorLabel = new Label();
+		enemyArmorLabel.Name = "EnemyArmorLabel";
+		enemyArmorLabel.Text = "Armor: 0";
+		enemyArmorLabel.AddThemeColorOverride("font_color", Colors.Gray);
+		enemyArmorLabel.AddThemeFontSizeOverride("font_size", 12);
+		enemyStatPanel.AddChild(enemyArmorLabel);
+		
+		// Enemy Attack Speed
+		var enemyAttackSpeedLabel = new Label();
+		enemyAttackSpeedLabel.Name = "EnemyAttackSpeedLabel";
+		enemyAttackSpeedLabel.Text = "Attack Speed: 3.0s";
+		enemyAttackSpeedLabel.AddThemeColorOverride("font_color", Colors.Orange);
+		enemyAttackSpeedLabel.AddThemeFontSizeOverride("font_size", 12);
+		enemyStatPanel.AddChild(enemyAttackSpeedLabel);
+		
+		// Enemy HP Regen
+		var enemyHpRegenLabel = new Label();
+		enemyHpRegenLabel.Name = "EnemyHpRegenLabel";
+		enemyHpRegenLabel.Text = "HP Regen: 0.2/s";
+		enemyHpRegenLabel.AddThemeColorOverride("font_color", Colors.Pink);
+		enemyHpRegenLabel.AddThemeFontSizeOverride("font_size", 12);
+		enemyStatPanel.AddChild(enemyHpRegenLabel);
+	}
+	
 	public void UpdateStatPanel()
 	{
-		if (player == null) return;
+		if (player == null) 
+		{
+			GD.Print("UpdateStatPanel: player is null!");
+			return;
+		}
 		
 		// Update level and experience
 		if (playerLevelLabel != null)
 		{
 			playerLevelLabel.Text = $"Level: {player.Level}";
+			GD.Print($"Updated Level label to: {player.Level}");
+		}
+		else
+		{
+			GD.Print("UpdateStatPanel: playerLevelLabel is null!");
 		}
 		
 		if (playerExpLabel != null)
 		{
 			playerExpLabel.Text = $"XP: {player.Experience}/{player.ExperienceToNextLevel}";
+			GD.Print($"Updated XP label to: {player.Experience}/{player.ExperienceToNextLevel}");
+		}
+		else
+		{
+			GD.Print("UpdateStatPanel: playerExpLabel is null!");
 		}
 		
 		// Update combat stats
@@ -757,10 +887,22 @@ public partial class GameManager : Node
 			var weapon = player.PlayerInventory.EquippedWeapon;
 			int shopDamageBonus = player.PlayerShop.Upgrades[0].Level; // Weapon Mastery
 			float levelScaling = 1.0f + (player.Level - 1) * 0.1f;
-			int totalDamage = Mathf.RoundToInt((weapon.TotalDamage + shopDamageBonus) * levelScaling);
+			float efficiency = player.CalculateAttackEfficiency();
+			int totalDamage = Mathf.RoundToInt((weapon.TotalDamage + shopDamageBonus) * levelScaling * efficiency);
 			
-			playerDamageLabel.Text = $"Damage: {totalDamage}";
-			playerDamageLabel.TooltipText = $"Base: {weapon.BaseDamage} + Runes: +{weapon.TotalDamage - weapon.BaseDamage} + Shop: +{shopDamageBonus} + Level: x{levelScaling:F1}";
+			string damageText = $"Damage: {totalDamage}";
+			if (efficiency > 1.0f)
+			{
+				damageText += $" (x{efficiency:F1})";
+				playerDamageLabel.AddThemeColorOverride("font_color", Colors.Gold);
+			}
+			else
+			{
+				playerDamageLabel.AddThemeColorOverride("font_color", Colors.Red);
+			}
+			
+			playerDamageLabel.Text = damageText;
+			playerDamageLabel.TooltipText = $"Base: {weapon.BaseDamage} + Runes: +{weapon.TotalDamage - weapon.BaseDamage} + Shop: +{shopDamageBonus} + Level: x{levelScaling:F1} + Efficiency: x{efficiency:F1}";
 		}
 		
 		if (playerCooldownLabel != null)
@@ -768,10 +910,86 @@ public partial class GameManager : Node
 			var weapon = player.PlayerInventory.EquippedWeapon;
 			var speedUpgrade = player.PlayerShop.Upgrades[1]; // Combat Training
 			float speedReduction = speedUpgrade.Level * 0.1f;
-			float finalCooldown = Mathf.Max(0.2f, weapon.TotalCooldown - speedReduction);
+			float actualCooldown = weapon.TotalCooldown - speedReduction;
+			float effectiveCooldown = player.GetEffectiveCooldown();
+			float efficiency = player.CalculateAttackEfficiency();
 			
-			playerCooldownLabel.Text = $"Cooldown: {finalCooldown:F1}s";
-			playerCooldownLabel.TooltipText = $"Base: {weapon.BaseCooldown:F1}s + Runes: {weapon.TotalCooldown - weapon.BaseCooldown:F1}s + Shop: -{speedReduction:F1}s";
+			string cooldownText = $"Cooldown: {effectiveCooldown:F1}s";
+			if (efficiency > 1.0f)
+			{
+				cooldownText += $" (x{efficiency:F1} eff)";
+				playerCooldownLabel.AddThemeColorOverride("font_color", Colors.Gold);
+			}
+			else
+			{
+				playerCooldownLabel.AddThemeColorOverride("font_color", Colors.LightBlue);
+			}
+			
+			playerCooldownLabel.Text = cooldownText;
+			playerCooldownLabel.TooltipText = $"Base: {weapon.BaseCooldown:F1}s + Runes: {weapon.TotalCooldown - weapon.BaseCooldown:F1}s + Shop: -{speedReduction:F1}s = {actualCooldown:F1}s actual\nEffective: {effectiveCooldown:F1}s (min 0.2s), Efficiency: x{efficiency:F1}";
+		}
+		
+		// Update new combat stats
+		var statPanelChildren = statPanel.GetChildren();
+		
+		// HP (3rd child after damage and cooldown)
+		if (statPanelChildren.Count > 2)
+		{
+			var hpLabel = statPanelChildren[2] as Label;
+			if (hpLabel != null)
+			{
+				if (player.IsDead)
+				{
+					hpLabel.Text = "HP: DEAD";
+					hpLabel.AddThemeColorOverride("font_color", Colors.DarkRed);
+				}
+				else
+				{
+					hpLabel.Text = $"HP: {player.CurrentHp}/{player.MaxHp}";
+					// Color based on HP percentage
+					float hpPercentage = (float)player.CurrentHp / player.MaxHp;
+					if (hpPercentage > 0.7f)
+						hpLabel.AddThemeColorOverride("font_color", Colors.Green);
+					else if (hpPercentage > 0.3f)
+						hpLabel.AddThemeColorOverride("font_color", Colors.Yellow);
+					else
+						hpLabel.AddThemeColorOverride("font_color", Colors.Red);
+				}
+			}
+		}
+		
+		// Armor (4th child)
+		if (statPanelChildren.Count > 3)
+		{
+			var armorLabel = statPanelChildren[3] as Label;
+			if (armorLabel != null)
+			{
+				int shopArmorBonus = player.PlayerShop.Upgrades[3].Level; // Heavy Armor upgrade
+				int totalArmor = player.Armor + shopArmorBonus;
+				armorLabel.Text = $"Armor: {totalArmor}";
+			}
+		}
+		
+		// Armor Piercing (5th child)
+		if (statPanelChildren.Count > 4)
+		{
+			var armorPiercingLabel = statPanelChildren[4] as Label;
+			if (armorPiercingLabel != null)
+			{
+				float weaponArmorPiercing = player.PlayerInventory.EquippedWeapon?.ArmorPiercing ?? 0;
+				float totalArmorPiercing = player.ArmorPiercing + weaponArmorPiercing;
+				armorPiercingLabel.Text = $"Armor Piercing: {totalArmorPiercing}";
+			}
+		}
+		
+		// HP Regen (6th child)
+		if (statPanelChildren.Count > 5)
+		{
+			var hpRegenLabel = statPanelChildren[5] as Label;
+			if (hpRegenLabel != null)
+			{
+				hpRegenLabel.Text = $"HP Regen: {player.HpRegen:F1}/s";
+			}
 		}
 		
 		// Update resources
@@ -783,6 +1001,58 @@ public partial class GameManager : Node
 		if (playerGoldLabel != null)
 		{
 			playerGoldLabel.Text = $"Gold: {player.PlayerInventory.Gold}";
+		}
+	}
+	
+	public void UpdateEnemyStatPanel(Enemy enemy)
+	{
+		if (enemy == null || enemyStatPanel == null) return;
+		
+		// Get enemy stat labels
+		var enemyLevelLabel = enemyStatPanel.GetNode<Label>("EnemyLevelLabel");
+		var enemyHpLabel = enemyStatPanel.GetNode<Label>("EnemyHpLabel");
+		var enemyDamageLabel = enemyStatPanel.GetNode<Label>("EnemyDamageLabel");
+		var enemyArmorLabel = enemyStatPanel.GetNode<Label>("EnemyArmorLabel");
+		var enemyAttackSpeedLabel = enemyStatPanel.GetNode<Label>("EnemyAttackSpeedLabel");
+		var enemyHpRegenLabel = enemyStatPanel.GetNode<Label>("EnemyHpRegenLabel");
+		
+		// Update enemy stats
+		if (enemyLevelLabel != null)
+		{
+			enemyLevelLabel.Text = $"Level: {enemy.PlayerLevel}";
+		}
+		
+		if (enemyHpLabel != null)
+		{
+			enemyHpLabel.Text = $"HP: {enemy.CurrentHp}/{enemy.MaxHp}";
+			// Color based on HP percentage
+			float hpPercentage = (float)enemy.CurrentHp / enemy.MaxHp;
+			if (hpPercentage > 0.7f)
+				enemyHpLabel.AddThemeColorOverride("font_color", Colors.Red);
+			else if (hpPercentage > 0.3f)
+				enemyHpLabel.AddThemeColorOverride("font_color", Colors.Orange);
+			else
+				enemyHpLabel.AddThemeColorOverride("font_color", Colors.DarkRed);
+		}
+		
+		if (enemyDamageLabel != null)
+		{
+			enemyDamageLabel.Text = $"Damage: {enemy.Damage}";
+		}
+		
+		if (enemyArmorLabel != null)
+		{
+			enemyArmorLabel.Text = $"Armor: {enemy.Armor}";
+		}
+		
+		if (enemyAttackSpeedLabel != null)
+		{
+			enemyAttackSpeedLabel.Text = $"Attack Speed: {enemy.AttackCooldown:F1}s";
+		}
+		
+		if (enemyHpRegenLabel != null)
+		{
+			enemyHpRegenLabel.Text = $"HP Regen: {enemy.HpRegen:F1}/s";
 		}
 	}
 }

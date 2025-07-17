@@ -6,7 +6,11 @@ public enum UpgradeType
 {
 	Damage,
 	AttackSpeed,
-	AutoAttack
+	AutoAttack,
+	Armor,
+	RespawnSpeed,
+	MaxHealth,
+	HealthRegen
 }
 
 public partial class ShopUpgrade : Resource
@@ -51,6 +55,14 @@ public partial class ShopUpgrade : Resource
 					return $"🤖 Auto-Attack System - {GetCurrentCost()}g";
 				else
 					return $"🤖 Auto-Attack System - PURCHASED";
+			case UpgradeType.Armor:
+				return $"🛡️ Heavy Armor Lv.{Level} (+{Level} armor) - {GetCurrentCost()}g";
+			case UpgradeType.RespawnSpeed:
+				return $"💨 Quick Respawn Lv.{Level} (-{Level}s respawn) - {GetCurrentCost()}g";
+			case UpgradeType.MaxHealth:
+				return $"❤️ Vitality Lv.{Level} (+{Level * 20} max HP) - {GetCurrentCost()}g";
+			case UpgradeType.HealthRegen:
+				return $"💚 Regeneration Lv.{Level} (+{Level * 0.5f} HP/s) - {GetCurrentCost()}g";
 			default:
 				return $"Unknown Upgrade Lv.{Level} - {GetCurrentCost()}g";
 		}
@@ -69,6 +81,14 @@ public partial class ShopUpgrade : Resource
 					return $"Enables automatic attacking when off cooldown.\nOne-time purchase that adds a checkbox next to attack button.";
 				else
 					return $"Auto-attack system already purchased!\nUse the checkbox next to the attack button.";
+			case UpgradeType.Armor:
+				return $"Increases armor by 1 per level. Armor reduces incoming damage.\nNext level: +{Level + 1} total armor\nCost increases by 50% each level.";
+			case UpgradeType.RespawnSpeed:
+				return $"Reduces respawn time by 1 second per level.\nNext level: {Mathf.Max(1, 10 - (Level + 1))}s respawn time\nCost increases by 50% each level.";
+			case UpgradeType.MaxHealth:
+				return $"Increases maximum health by 20 per level.\nNext level: +{(Level + 1) * 20} total max HP\nCost increases by 50% each level.";
+			case UpgradeType.HealthRegen:
+				return $"Increases health regeneration by 0.5 HP/s per level.\nNext level: +{(Level + 1) * 0.5f} total HP/s\nCost increases by 50% each level.";
 			default:
 				return "Unknown upgrade effect.";
 		}
@@ -112,6 +132,42 @@ public partial class Shop : Resource
 			100
 		);
 		Upgrades.Add(autoAttackUpgrade);
+		
+		// Armor upgrade (expensive but important)
+		var armorUpgrade = new ShopUpgrade(
+			UpgradeType.Armor,
+			"Heavy Armor",
+			"Increases armor by 1 per level",
+			200  // Expensive! Armor is very powerful
+		);
+		Upgrades.Add(armorUpgrade);
+		
+		// Respawn Speed upgrade 
+		var respawnUpgrade = new ShopUpgrade(
+			UpgradeType.RespawnSpeed,
+			"Quick Respawn",
+			"Reduces respawn time by 1 second per level",
+			75
+		);
+		Upgrades.Add(respawnUpgrade);
+		
+		// Max Health upgrade
+		var maxHealthUpgrade = new ShopUpgrade(
+			UpgradeType.MaxHealth,
+			"Vitality",
+			"Increases maximum health by 20 per level",
+			150  // Moderate cost for survivability
+		);
+		Upgrades.Add(maxHealthUpgrade);
+		
+		// Health Regen upgrade
+		var healthRegenUpgrade = new ShopUpgrade(
+			UpgradeType.HealthRegen,
+			"Regeneration",
+			"Increases health regeneration by 0.5 HP/s per level",
+			100  // Moderate cost for sustain
+		);
+		Upgrades.Add(healthRegenUpgrade);
 	}
 	
 	public bool CanAffordUpgrade(ShopUpgrade upgrade, int playerGold)

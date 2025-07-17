@@ -7,6 +7,18 @@ public partial class Player : CharacterBody2D
 	[Export] public int Level = 1;
 	[Export] public int ExperienceToNextLevel = 10;
 	
+	// Combat Stats
+	[Export] public int MaxHp = 100;
+	[Export] public int CurrentHp = 100;
+	[Export] public int Armor = 0;
+	[Export] public int ArmorPiercing = 0;
+	[Export] public float HpRegen = 1.0f; // HP per second
+	
+	// Death/Respawn System
+	[Export] public float BaseRespawnTime = 10.0f;
+	[Export] public bool IsDead = false;
+	private Timer respawnTimer;
+	
 	public Inventory PlayerInventory = new Inventory();
 	public Shop PlayerShop = new Shop();
 	
@@ -14,6 +26,7 @@ public partial class Player : CharacterBody2D
 	
 	private Button attackButton;
 	private Timer attackCooldownTimer;
+	private Timer hpRegenTimer;
 	private RichTextLabel combatLog;
 	private Label experienceLabel;
 	private Label levelLabel;
@@ -73,6 +86,21 @@ public partial class Player : CharacterBody2D
 				GD.PrintErr("❌ AttackTimer still not found!");
 			}
 		}
+		
+		// Set up HP regeneration timer
+		hpRegenTimer = new Timer();
+		hpRegenTimer.Name = "HpRegenTimer";
+		hpRegenTimer.WaitTime = 1.0f; // Tick every second
+		hpRegenTimer.Autostart = true;
+		hpRegenTimer.Timeout += OnHpRegen;
+		AddChild(hpRegenTimer);
+		
+		// Set up respawn timer
+		respawnTimer = new Timer();
+		respawnTimer.Name = "RespawnTimer";
+		respawnTimer.OneShot = true;
+		respawnTimer.Timeout += OnRespawn;
+		AddChild(respawnTimer);
 
 		// Try to get the attack button - For GameManager structure
 		attackButton = GetNodeOrNull<Button>("../CanvasLayer/AttackButton");
@@ -189,35 +217,58 @@ public partial class Player : CharacterBody2D
 		colorRect.Position = new Vector2(-25, -25); // Center it
 		enemy.AddChild(colorRect);
 		
-		enemy.Position = new Vector2(600, 250); // Position to the right of player
+		enemy.Position = new Vector2(600, 400); // Position to the right of player, below stat panel
 		currentEnemy = enemy;
 		GD.Print($"Enemy created at position: {enemy.Position} with {enemy.MaxHp} HP");
 		AddToCombatLog($"A level {Level} enemy appears! ({enemy.MaxHp} HP)", Colors.Red);
+		
+		// Update enemy stat panel
+		GetGameManager()?.UpdateEnemyStatPanel(enemy);
 	}
 	
 	private void OnAttackButtonPressed()
 	{
+		// Don't attack if dead
+		if (IsDead) return;
+		
 		GD.Print("Attack button pressed!");
 		
 		if (currentEnemy != null && IsInstanceValid(currentEnemy))
 		{
 			GD.Print($"Attacking enemy at position: {currentEnemy.Position}, HP: {currentEnemy.CurrentHp}");
 			
-			// Calculate damage with level scaling and shop upgrades
+			// Calculate damage with level scaling, shop upgrades, and efficiency
 			int weaponDamage = PlayerInventory.EquippedWeapon.TotalDamage;
 			
 			// Add shop damage upgrades
 			var damageUpgrade = PlayerShop.Upgrades[0]; // Weapon Mastery
 			int shopDamageBonus = damageUpgrade.Level;
 			
+			// Apply level scaling
 			float levelScaling = 1.0f + (Level - 1) * 0.1f; // +10% damage per level
-			int totalDamage = Mathf.RoundToInt((weaponDamage + shopDamageBonus) * levelScaling);
+			
+			// Apply attack efficiency (for extremely fast attack speeds)
+			float efficiency = CalculateAttackEfficiency();
+			
+			int totalDamage = Mathf.RoundToInt((weaponDamage + shopDamageBonus) * levelScaling * efficiency);
 			
 			// Try to get player visual feedback
 			var playerRect = GetNodeOrNull<ColorRect>("ColorRect");
 			if (playerRect != null)
 			{
-				playerRect.Modulate = new Color(0.5f, 0.5f, 1);
+				// Change color based on efficiency
+				if (efficiency > 2.0f)
+				{
+					playerRect.Modulate = Colors.Gold; // Super efficient attack
+				}
+				else if (efficiency > 1.0f)
+				{
+					playerRect.Modulate = Colors.Orange; // Efficient attack
+				}
+				else
+				{
+					playerRect.Modulate = new Color(0.5f, 0.5f, 1); // Normal attack
+				}
 				
 				GetTree().CreateTimer(0.1f).Timeout += () => {
 					if (IsInstanceValid(playerRect))
@@ -225,10 +276,24 @@ public partial class Player : CharacterBody2D
 				};
 			}
 			
-			// Log the attack
-			AddToCombatLog($"You attack the enemy for {totalDamage} damage!", Colors.Orange);
+			// Log the attack with efficiency indicator
+			string attackMessage = $"You attack the enemy for {totalDamage} damage!";
+			if (efficiency > 1.5f)
+			{
+				attackMessage = $"💥 Efficient Strike! You attack for {totalDamage} damage! (x{efficiency:F1})";
+				AddToCombatLog(attackMessage, Colors.Gold);
+			}
+			else if (efficiency > 1.0f)
+			{
+				attackMessage = $"⚡ Quick Strike! You attack for {totalDamage} damage! (x{efficiency:F1})";
+				AddToCombatLog(attackMessage, Colors.Orange);
+			}
+			else
+			{
+				AddToCombatLog(attackMessage, Colors.Orange);
+			}
 			
-	   		currentEnemy.TakeDamage(totalDamage);
+	   		currentEnemy.TakeDamage(totalDamage, CalculateTotalArmorPiercing());
 			GD.Print($"Enemy HP after damage: {currentEnemy.CurrentHp}");
 			
 			// Check if enemy was defeated after taking damage
@@ -271,14 +336,8 @@ public partial class Player : CharacterBody2D
 			// Start cooldown if timer exists
 			if (attackCooldownTimer != null)
 			{
-				float baseCooldown = PlayerInventory.EquippedWeapon.TotalCooldown;
-				
-				// Apply shop speed upgrades
-				var speedUpgrade = PlayerShop.Upgrades[1]; // Combat Training
-				float speedReduction = speedUpgrade.Level * 0.1f;
-				
-				float finalCooldown = Mathf.Max(0.2f, baseCooldown - speedReduction);
-				attackCooldownTimer.WaitTime = finalCooldown;
+				float effectiveCooldown = GetEffectiveCooldown();
+				attackCooldownTimer.WaitTime = effectiveCooldown;
 				attackCooldownTimer.Start();
 			}
 		}
@@ -348,6 +407,7 @@ public partial class Player : CharacterBody2D
 	{
 		Experience += amount;
 		AddToCombatLog($"Gained {amount} experience!", Colors.Cyan);
+		GD.Print($"GainExperience: Player gained {amount} XP. Total: {Experience}/{ExperienceToNextLevel}");
 		
 		// Check for level up
 		while (Experience >= ExperienceToNextLevel)
@@ -363,6 +423,7 @@ public partial class Player : CharacterBody2D
 	{
 		Experience -= ExperienceToNextLevel;
 		Level++;
+		GD.Print($"LevelUp: Player leveled up to {Level}!");
 		
 		// Give spirit points on level up
 		int spiritPointsGained = 3 + (Level / 3); // 3 base + bonus every 3 levels
@@ -388,6 +449,7 @@ public partial class Player : CharacterBody2D
 		
 		// Update UI
 		GetGameManager()?.UpdateDraftButton();
+		GetGameManager()?.UpdateStatPanel();
 	}
 
 	public void LogEnemyDamage(int damage, int currentHp, int maxHp)
@@ -584,6 +646,33 @@ public partial class Player : CharacterBody2D
 				GetGameManager()?.UpdateAttackUI(); // Update attack button area to show checkbox
 			}
 			
+			// Handle armor purchase
+			if (upgrade.Type == UpgradeType.Armor)
+			{
+				Armor = PlayerShop.Upgrades[3].Level; // Heavy Armor upgrade level
+				AddToCombatLog($"Heavy Armor equipped! You now have {Armor} armor.", Colors.Blue);
+			}
+			
+			// Handle max health purchase
+			if (upgrade.Type == UpgradeType.MaxHealth)
+			{
+				int baseMaxHp = 100;
+				int healthUpgradeLevel = PlayerShop.Upgrades[5].Level; // Vitality upgrade
+				MaxHp = baseMaxHp + (healthUpgradeLevel * 20);
+				// Heal to full when upgrading max health
+				CurrentHp = MaxHp;
+				AddToCombatLog($"Vitality increased! Max HP is now {MaxHp}.", Colors.Green);
+			}
+			
+			// Handle health regen purchase
+			if (upgrade.Type == UpgradeType.HealthRegen)
+			{
+				float baseHpRegen = 1.0f;
+				int regenUpgradeLevel = PlayerShop.Upgrades[6].Level; // Regeneration upgrade
+				HpRegen = baseHpRegen + (regenUpgradeLevel * 0.5f);
+				AddToCombatLog($"Regeneration enhanced! HP regen is now {HpRegen:F1} HP/s.", Colors.LightGreen);
+			}
+			
 			// Update UI
 			UpdateGoldRelatedUI();
 			gameManager?.UpdateInventoryUI();
@@ -594,7 +683,7 @@ public partial class Player : CharacterBody2D
 		}
 	}
 	
-	private GameManager GetGameManager()
+	public GameManager GetGameManager()
 	{
 		if (gameManager == null)
 		{
@@ -641,5 +730,178 @@ public partial class Player : CharacterBody2D
 		{
 			AddToCombatLog("Auto-attack disabled.", Colors.Yellow);
 		}
+	}
+	
+	// Attack efficiency system - for when cooldown gets extremely low
+	private const float MIN_COOLDOWN = 0.2f; // Minimum visual cooldown
+	
+	public float CalculateAttackEfficiency()
+	{
+		var weapon = PlayerInventory.EquippedWeapon;
+		var speedUpgrade = PlayerShop.Upgrades[1]; // Combat Training
+		float speedReduction = speedUpgrade.Level * 0.1f;
+		float actualCooldown = weapon.TotalCooldown - speedReduction;
+		
+		if (actualCooldown <= MIN_COOLDOWN)
+		{
+			// When cooldown would be faster than minimum, calculate efficiency multiplier
+			return MIN_COOLDOWN / Mathf.Max(0.05f, actualCooldown); // Prevent division by zero
+		}
+		
+		return 1.0f; // Normal efficiency
+	}
+	
+	public float GetEffectiveCooldown()
+	{
+		var weapon = PlayerInventory.EquippedWeapon;
+		var speedUpgrade = PlayerShop.Upgrades[1]; // Combat Training
+		float speedReduction = speedUpgrade.Level * 0.1f;
+		float actualCooldown = weapon.TotalCooldown - speedReduction;
+		
+		return Mathf.Max(MIN_COOLDOWN, actualCooldown);
+	}
+	
+	private void OnHpRegen()
+	{
+		// Don't regenerate if dead
+		if (IsDead) return;
+		
+		if (CurrentHp < MaxHp)
+		{
+			int regenAmount = Mathf.RoundToInt(HpRegen);
+			CurrentHp = Mathf.Min(MaxHp, CurrentHp + regenAmount);
+			
+			// Update UI
+			GetGameManager()?.UpdateStatPanel();
+		}
+	}
+	
+	public void TakeDamage(int damage, int armorPiercing = 0)
+	{
+		// Calculate effective armor (reduced by armor piercing)
+		int effectiveArmor = Mathf.Max(0, Armor - armorPiercing);
+		
+		// Apply armor reduction (simple: each point of armor reduces damage by 1, minimum 1 damage)
+		int finalDamage = Mathf.Max(1, damage - effectiveArmor);
+		
+		CurrentHp = Mathf.Max(0, CurrentHp - finalDamage);
+		
+		// Visual feedback
+		var playerRect = GetNodeOrNull<ColorRect>("ColorRect");
+		if (playerRect != null)
+		{
+			playerRect.Modulate = Colors.Red;
+			GetTree().CreateTimer(0.2f).Timeout += () => {
+				if (IsInstanceValid(playerRect))
+					playerRect.Modulate = Colors.White;
+			};
+		}
+		
+		// Log damage taken
+		string damageText = $"You take {finalDamage} damage!";
+		if (effectiveArmor > 0)
+		{
+			damageText += $" ({damage} reduced by {effectiveArmor} armor)";
+		}
+		AddToCombatLog(damageText, Colors.Red);
+		
+		// Check if player died
+		if (CurrentHp <= 0)
+		{
+			Die();
+		}
+		
+		// Update UI
+		GetGameManager()?.UpdateStatPanel();
+	}
+	
+	public int CalculateTotalDamage()
+	{
+		var weapon = PlayerInventory.EquippedWeapon;
+		int shopDamageBonus = PlayerShop.Upgrades[0].Level; // Weapon Mastery
+		float levelScaling = 1.0f + (Level - 1) * 0.1f;
+		float efficiency = CalculateAttackEfficiency();
+		
+		return Mathf.RoundToInt((weapon.TotalDamage + shopDamageBonus) * levelScaling * efficiency);
+	}
+	
+	public int CalculateTotalArmorPiercing()
+	{
+		// Base armor piercing + weapon bonuses + shop upgrades
+		return ArmorPiercing + PlayerInventory.EquippedWeapon.ArmorPiercing;
+	}
+	
+	private void Die()
+	{
+		if (IsDead) return; // Already dead
+		
+		IsDead = true;
+		CurrentHp = 0;
+		
+		AddToCombatLog("💀 You have been defeated!", Colors.DarkRed);
+		AddToCombatLog($"🔄 Level reset to 1. Respawning in {CalculateRespawnTime()}s...", Colors.Orange);
+		
+		// Reset level to 1
+		Level = 1;
+		Experience = 0;
+		ExperienceToNextLevel = 10;
+		
+		// Despawn current enemy
+		if (currentEnemy != null && IsInstanceValid(currentEnemy))
+		{
+			AddToCombatLog("The enemy retreats as you fall...", Colors.Gray);
+			currentEnemy.QueueFree();
+			currentEnemy = null;
+		}
+		
+		// Disable auto-attack while dead
+		if (autoAttackCheckbox != null)
+		{
+			autoAttackCheckbox.ButtonPressed = false;
+			isAutoAttackEnabled = false;
+		}
+		
+		// Disable attack button
+		if (attackButton != null)
+		{
+			attackButton.Disabled = true;
+			attackButton.Text = $"Respawning... {CalculateRespawnTime()}s";
+		}
+		
+		// Start respawn timer
+		float respawnTime = CalculateRespawnTime();
+		respawnTimer.WaitTime = respawnTime;
+		respawnTimer.Start();
+		
+		// Update UI
+		GetGameManager()?.UpdateStatPanel();
+	}
+	
+	private float CalculateRespawnTime()
+	{
+		// Base respawn time minus shop upgrade levels (minimum 1 second)
+		int respawnUpgradeLevel = PlayerShop.Upgrades[4].Level; // RespawnSpeed upgrade (index 4)
+		return Mathf.Max(1.0f, BaseRespawnTime - respawnUpgradeLevel);
+	}
+	
+	private void OnRespawn()
+	{
+		IsDead = false;
+		CurrentHp = MaxHp;
+		
+		AddToCombatLog("✨ You have respawned!", Colors.Green);
+		
+		// Re-enable attack button
+		if (attackButton != null)
+		{
+			attackButton.Disabled = false;
+			attackButton.Text = "Attack";
+		}
+		
+		// Spawn a new level-appropriate enemy
+		SpawnEnemy();
+		
+		// Update UI
+		GetGameManager()?.UpdateStatPanel();
 	}
 }
