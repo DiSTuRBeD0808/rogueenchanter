@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="RogueEnchanter"
-run/main_scene="res://game_manager_scene.tscn"
+run/main_scene="res://Scenes/Main.tscn"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://Assets/Icons/icon.svg"
 
 [display]
 

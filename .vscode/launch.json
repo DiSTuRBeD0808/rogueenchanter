@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Play in Editor",
+            "type": "godot",
+            "request": "launch",
+            "project": "${workspaceFolder}",
+            "address": "127.0.0.1",
+            "port": 6007,
+            "scene": "main",
+            "editor_path": "F:\\Godot_v4.4.1-stable_mono_win64\\Godot_v4.4.1-stable_mono_win64.exe"
+        },
+        {
+            "name": "Launch Main Scene", 
+            "type": "godot",
+            "request": "launch",
+            "project": "${workspaceFolder}",
+            "address": "127.0.0.1",
+            "port": 6007,
+            "scene": "main",
+            "editor_path": "F:\\Godot_v4.4.1-stable_mono_win64\\Godot_v4.4.1-stable_mono_win64.exe"
+        },
+        {
+            "name": "Attach",
+            "type": "godot",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 6007
+        }
+    ]
+}

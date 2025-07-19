@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3 uid="uid://d14a8bgfslmhb"]
+
+[ext_resource type="Script" path="res://Scripts/GameManager.cs" id="1_2x8n4"]
+[ext_resource type="Script" path="res://Scripts/Combat/CombatSystem.cs" id="2_1k5m6"]
+[ext_resource type="Script" path="res://Scripts/Inventory/InventorySystem.cs" id="3_9h7j8"]
+[ext_resource type="Script" path="res://Scripts/UI/UISystem.cs" id="4_5l9k2"]
+
+[node name="Main" type="Node2D"]
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("1_2x8n4")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="UISystem" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("4_5l9k2")
+
+[node name="GameWorld" type="Node2D" parent="."]
+
+[node name="Player" type="CharacterBody2D" parent="GameWorld"]
+position = Vector2(400, 300)
+
+[node name="ColorRect" type="ColorRect" parent="GameWorld/Player"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+color = Color(0, 0.5, 1, 1)
+
+[node name="Systems" type="Node" parent="."]
+
+[node name="CombatSystem" type="Node" parent="Systems"]
+script = ExtResource("2_1k5m6")
+
+[node name="InventorySystem" type="Node" parent="Systems"]
+script = ExtResource("3_9h7j8")
