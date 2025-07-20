@@ -44,7 +44,7 @@ public partial class PlayerStatsPanel : BasePanel
             mainLabel = new Label();
             mainLabel.Name = "PlayerStatsLabel";
             mainLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-            mainLabel.VerticalAlignment = VerticalAlignment.Top;
+            mainLabel.VerticalAlignment = VerticalAlignment.Center;
             mainLabel.HorizontalAlignment = HorizontalAlignment.Center;
             
             // Make the label fill the entire panel

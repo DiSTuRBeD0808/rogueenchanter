@@ -97,9 +97,19 @@ public partial class GameManager : Node
             return;
         }
         
-        // Add GameUI to the scene tree
-        AddChild(_gameUI);
-        GD.Print("🖥️ GameUI loaded and added to scene tree");
+        // Add GameUI to the UILayer (CanvasLayer) instead of GameManager
+        var uiLayer = GetNode("../UILayer");
+        if (uiLayer != null)
+        {
+            uiLayer.AddChild(_gameUI);
+            GD.Print("🖥️ GameUI loaded and added to UILayer (CanvasLayer)");
+        }
+        else
+        {
+            // Fallback: add to GameManager if UILayer not found
+            AddChild(_gameUI);
+            GD.PrintErr("⚠️ UILayer not found, added GameUI to GameManager instead");
+        }
         
         // Connect GameUI signals to GameManager methods
         ConnectUISignals();

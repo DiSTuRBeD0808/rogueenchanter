@@ -93,36 +93,78 @@ public partial class GameUI : Control
     {
         GD.Print("🖥️ GameUI: Creating test buttons for PlayerStatsPanel...");
         
-        // Get the GameDisplay content area
-        var gameDisplayContent = GetNodeOrNull<VBoxContainer>("GridContainer/GameDisplay/GameDisplayContent");
-        if (gameDisplayContent != null)
+        // Get the existing GameButtons container
+        var gameButtonsContainer = GetNodeOrNull<HBoxContainer>("GridContainer/GameDisplay/GameDisplayContent/GameButtons");
+        if (gameButtonsContainer != null)
         {
-            // Create a horizontal container for the test buttons
-            var testButtonContainer = new HBoxContainer();
-            testButtonContainer.Name = "TestButtonContainer";
+            // Get references to existing buttons BEFORE removing container
+            var attackButton = gameButtonsContainer.GetNode<Button>("AttackButton");
+            var restButton = gameButtonsContainer.GetNode<Button>("RestButton");
+            
+            // Store references to the original buttons for later use
+            _attackButton = attackButton;
+            _restButton = restButton;
+            
+            // Remove buttons from old container (but don't destroy them)
+            gameButtonsContainer.RemoveChild(attackButton);
+            gameButtonsContainer.RemoveChild(restButton);
+            
+            // Get parent and index for replacement
+            var parent = gameButtonsContainer.GetParent();
+            var index = gameButtonsContainer.GetIndex();
+            
+            // Remove the old container
+            gameButtonsContainer.QueueFree();
+            
+            // Create a new GridContainer to replace the HBoxContainer
+            var buttonGridContainer = new GridContainer();
+            buttonGridContainer.Name = "GameButtons";
+            buttonGridContainer.Columns = 2; // 2x2 grid
+            
+            // Center align the grid container
+            buttonGridContainer.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+            buttonGridContainer.SizeFlagsVertical = Control.SizeFlags.ShrinkEnd; // Align to bottom
             
             // Create Level Up button
             _levelUpButton = new Button();
             _levelUpButton.Text = "Level Up (+1)";
             _levelUpButton.Name = "LevelUpButton";
+            _levelUpButton.CustomMinimumSize = new Vector2(120, 40);
+            _levelUpButton.Disabled = false;
+            _levelUpButton.Visible = true;
             
             // Create Level Down button  
             _levelDownButton = new Button();
             _levelDownButton.Text = "Level Down (-1)";
             _levelDownButton.Name = "LevelDownButton";
+            _levelDownButton.CustomMinimumSize = new Vector2(120, 40);
+            _levelDownButton.Disabled = false;
+            _levelDownButton.Visible = true;
             
-            // Add buttons to the container
-            testButtonContainer.AddChild(_levelUpButton);
-            testButtonContainer.AddChild(_levelDownButton);
+            // Add all buttons to the grid in order:
+            // Row 1: Attack, Rest
+            // Row 2: Level Up, Level Down
+            buttonGridContainer.AddChild(attackButton);
+            buttonGridContainer.AddChild(restButton);
+            buttonGridContainer.AddChild(_levelUpButton);
+            buttonGridContainer.AddChild(_levelDownButton);
             
-            // Add the test button container to the GameDisplay content
-            gameDisplayContent.AddChild(testButtonContainer);
+            // Add the new grid container back to the parent
+            parent.AddChild(buttonGridContainer);
+            parent.MoveChild(buttonGridContainer, index);
             
-            GD.Print("🖥️ GameUI: Test buttons created and added to GameDisplay");
+            GD.Print($"🖥️ GameUI: Button grid created with all 4 buttons");
+            GD.Print($"🖥️ GameUI: Attack button preserved: {attackButton != null}");
+            GD.Print($"🖥️ GameUI: Rest button preserved: {restButton != null}");
+            GD.Print($"�️ GameUI: Level Up button created: {_levelUpButton != null}");
+            GD.Print($"�️ GameUI: Level Down button created: {_levelDownButton != null}");
+            
+            // Debug: Check button properties
+            GD.Print($"🔍 DEBUG: Button grid children count: {buttonGridContainer.GetChildCount()}");
         }
         else
         {
-            GD.PrintErr("❌ GameUI: Could not find GameDisplay content area for test buttons!");
+            GD.PrintErr("❌ GameUI: Could not find GameButtons container!");
         }
     }
     
@@ -135,9 +177,8 @@ public partial class GameUI : Control
         _upgradeShopLabel = GetNode<Label>("GridContainer/UpgradeShop/UpgradeShopLabel");
         _runeUpgradesLabel = GetNode<Label>("GridContainer/RuneUpgrades/RuneUpgradesLabel");
         
-        // Get button references
-        _attackButton = GetNode<Button>("GridContainer/GameDisplay/GameDisplayContent/GameButtons/AttackButton");
-        _restButton = GetNode<Button>("GridContainer/GameDisplay/GameDisplayContent/GameButtons/RestButton");
+        // Button references are now set in CreateTestButtons() method
+        // No need to get them here since they've been moved to GridContainer
         
         // Get visual references
         _playerVisual = GetNode<ColorRect>("GridContainer/GameDisplay/GameDisplayContent/GameVisuals/PlayerVisual");
@@ -163,10 +204,24 @@ public partial class GameUI : Control
         
         // Connect test buttons
         if (_levelUpButton != null)
+        {
             _levelUpButton.Pressed += OnLevelUpButtonPressed;
+            GD.Print("🖥️ GameUI: Level Up button signal connected");
+        }
+        else
+        {
+            GD.PrintErr("❌ GameUI: Level Up button is null, cannot connect signal");
+        }
         
         if (_levelDownButton != null)
+        {
             _levelDownButton.Pressed += OnLevelDownButtonPressed;
+            GD.Print("🖥️ GameUI: Level Down button signal connected");
+        }
+        else
+        {
+            GD.PrintErr("❌ GameUI: Level Down button is null, cannot connect signal");
+        }
         
         GD.Print("🖥️ GameUI: Button signals connected (including test buttons)");
     }
@@ -237,12 +292,14 @@ public partial class GameUI : Control
     // Test button signal handlers
     private void OnLevelUpButtonPressed()
     {
-        GD.Print("🖥️ GameUI: Level Up button pressed - emitting signal");
+        GD.Print("� GameUI: Level Up button ACTUALLY PRESSED!");
+        GD.Print("�🖥️ GameUI: Level Up button pressed - emitting signal");
         EmitSignal(SignalName.LevelUpRequested);
     }
     
     private void OnLevelDownButtonPressed()
     {
+        GD.Print("🔥 GameUI: Level Down button ACTUALLY PRESSED!");
         GD.Print("🖥️ GameUI: Level Down button pressed - emitting signal");
         EmitSignal(SignalName.LevelDownRequested);
     }
