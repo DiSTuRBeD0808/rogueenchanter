@@ -1,0 +1,205 @@
+[gd_scene load_steps=2 format=3 uid="uid://bw8kak5n2qfmd"]
+
+[ext_resource type="Script" path="res://Scripts/UI/GameUI.cs" id="1_gameui"]
+
+[node name="GameUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_gameui")
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+columns = 3
+
+[node name="PlayerStats" type="Panel" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PlayerStatsLabel" type="Label" parent="GridContainer/PlayerStats"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "PLAYER STATS
+Level: 1
+Health: 100/100
+Attack: 10
+Defense: 5
+Gold: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameDisplay" type="Panel" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="GameDisplayContent" type="VBoxContainer" parent="GridContainer/GameDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="GameDisplayLabel" type="Label" parent="GridContainer/GameDisplay/GameDisplayContent"]
+layout_mode = 2
+text = "GAME DISPLAY"
+horizontal_alignment = 1
+
+[node name="GameVisuals" type="Control" parent="GridContainer/GameDisplay/GameDisplayContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerVisual" type="ColorRect" parent="GridContainer/GameDisplay/GameDisplayContent/GameVisuals"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 100.0
+offset_top = -30.0
+offset_right = 160.0
+offset_bottom = 30.0
+color = Color(0, 0.5, 1, 1)
+
+[node name="PlayerLabel" type="Label" parent="GridContainer/GameDisplay/GameDisplayContent/GameVisuals/PlayerVisual"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "PLAYER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnemyVisual" type="ColorRect" parent="GridContainer/GameDisplay/GameDisplayContent/GameVisuals"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -30.0
+offset_right = -100.0
+offset_bottom = 30.0
+color = Color(1, 0, 0, 1)
+
+[node name="EnemyLabel" type="Label" parent="GridContainer/GameDisplay/GameDisplayContent/GameVisuals/EnemyVisual"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "ENEMY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameButtons" type="HBoxContainer" parent="GridContainer/GameDisplay/GameDisplayContent"]
+layout_mode = 2
+alignment = 1
+
+[node name="AttackButton" type="Button" parent="GridContainer/GameDisplay/GameDisplayContent/GameButtons"]
+layout_mode = 2
+text = "ATTACK"
+
+[node name="RestButton" type="Button" parent="GridContainer/GameDisplay/GameDisplayContent/GameButtons"]
+layout_mode = 2
+text = "ENTER/EXIT REST"
+
+[node name="EnemyAndCombatStats" type="Panel" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EnemyAndCombatContent" type="VBoxContainer" parent="GridContainer/EnemyAndCombatStats"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="EnemyStatsLabel" type="Label" parent="GridContainer/EnemyAndCombatStats/EnemyAndCombatContent"]
+layout_mode = 2
+text = "ENEMY STATS
+Name: Goblin
+Level: 1
+Health: 50/50
+Attack: 8"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="GridContainer/EnemyAndCombatStats/EnemyAndCombatContent"]
+layout_mode = 2
+
+[node name="CombatStatsLabel" type="Label" parent="GridContainer/EnemyAndCombatStats/EnemyAndCombatContent"]
+layout_mode = 2
+text = "COMBAT STATS
+Damage Dealt: 0
+Damage Taken: 0
+Critical Hits: 0
+Combo: 0x"
+horizontal_alignment = 1
+
+[node name="UpgradeShop" type="Panel" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="UpgradeShopLabel" type="Label" parent="GridContainer/UpgradeShop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "UPGRADE SHOP
+- Weapon Upgrades
+- Armor Upgrades  
+- Stat Boosts
+- Special Items
+
+[Buy] [Sell] [Info]"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Inventory" type="Panel" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="InventoryLabel" type="Label" parent="GridContainer/Inventory"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "INVENTORY
+Items: 3/10
+- Iron Sword
+- Health Potion x2
+- Magic Ring
+
+[Use] [Drop] [Info]"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RuneUpgrades" type="Panel" parent="GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RuneUpgradesLabel" type="Label" parent="GridContainer/RuneUpgrades"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "RUNE UPGRADES
+Active Runes: 2/5
+- Fire Rune (Lv.2)
+- Shield Rune (Lv.1)
+
+Available:
+- Ice Rune
+- Lightning Rune
+
+[Upgrade] [Equip] [Info]"
+horizontal_alignment = 1
+vertical_alignment = 1
