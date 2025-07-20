@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// UI System - Manages all user interface elements
@@ -8,7 +10,7 @@ public partial class UISystem : Node
 {
     public override void _Ready()
     {
-        GD.Print("🖥️ UISystem: Ready for development");
+        DebugManager.Log(DebugCategory.UI_General, "UISystem: Ready for development", DebugLevel.Info);
     }
     
     // TODO: Implement UI functionality

@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// Central game orchestrator that coordinates all game systems
@@ -20,7 +22,7 @@ public partial class GameManager : Node
     
     public override void _Ready()
     {
-        GD.Print("🎮 GameManager: Starting minimal setup...");
+        DebugManager.Log(DebugCategory.GameManager, "Starting minimal setup...");
         
         // Initialize basic game data
         InitializeGameData();
@@ -34,58 +36,58 @@ public partial class GameManager : Node
         // Update UI with initial data
         UpdateAllUI();
         
-        GD.Print("🎮 GameManager: Ready for development!");
+        DebugManager.Log(DebugCategory.GameManager, "Ready for development!");
     }
     
     private void InitializeGameData()
     {
-        GD.Print("📊 InitializeGameData: Creating pure C# models...");
+        DebugManager.Log(DebugCategory.GameData, "Creating pure C# models...");
         
         // Create PlayerData from Models/Player/PlayerData.cs
         PlayerData = new PlayerData();
-        GD.Print($"📊 PlayerData created - Level: {PlayerData.Level}, Health: {PlayerData.Health}/{PlayerData.MaxHealth}");
+        DebugManager.LogVerbose(DebugCategory.GameData, $"PlayerData created - Level: {PlayerData.Level}, Health: {PlayerData.Health}/{PlayerData.MaxHealth}");
         
         // Create GameSettings from Models/Game/GameSettings.cs  
         Settings = new GameSettings();
-        GD.Print($"📊 GameSettings created - Volume: {Settings.MasterVolume}, AutoSave: {Settings.AutoSave}");
+        DebugManager.LogVerbose(DebugCategory.GameData, $"GameSettings created - Volume: {Settings.MasterVolume}, AutoSave: {Settings.AutoSave}");
         
         // Create GameSession from Models/Game/GameSettings.cs
         Session = new GameSession();
-        GD.Print($"📊 GameSession created - PlayTime: {Session.PlayTime}");
+        DebugManager.LogVerbose(DebugCategory.GameData, $"GameSession created - PlayTime: {Session.PlayTime}");
         
-        GD.Print("📊 Basic game data initialized successfully");
+        DebugManager.Log(DebugCategory.GameData, "Basic game data initialized successfully");
     }
     
     private void TestModels()
     {
-        GD.Print("🧪 TestModels: Running basic model operations...");
+        DebugManager.Log(DebugCategory.Testing, "Running basic model operations...", DebugLevel.Info);
         
         // Test PlayerData operations
-        GD.Print($"🧪 Player starting stats - Attack: {PlayerData.TotalAttack}, Defense: {PlayerData.TotalDefense}");
+        DebugManager.Log(DebugCategory.Player, $"Player starting stats - Attack: {PlayerData.TotalAttack}, Defense: {PlayerData.TotalDefense}", DebugLevel.Info);
         
         // Test taking damage
         int originalHealth = PlayerData.Health;
         // PlayerData.TakeDamage(10); // Uncomment when TakeDamage method exists
-        GD.Print($"🧪 Player health: {originalHealth} -> {PlayerData.Health}");
+        DebugManager.Log(DebugCategory.Player, $"Player health: {originalHealth} -> {PlayerData.Health}", DebugLevel.Info);
         
         // Test settings
-        GD.Print($"🧪 Settings test - Game speed: {Settings.GameSpeed}");
+        DebugManager.Log(DebugCategory.GameData, $"Settings test - Game speed: {Settings.GameSpeed}", DebugLevel.Info);
         
         // Test session
-        GD.Print($"🧪 Session test - Current play time: {Session.PlayTime} seconds");
+        DebugManager.Log(DebugCategory.GameData, $"Session test - Current play time: {Session.PlayTime} seconds", DebugLevel.Info);
         
-        GD.Print("🧪 Model testing completed");
+        DebugManager.Log(DebugCategory.Testing, "Model testing completed", DebugLevel.Info);
     }
     
     private void InitializeUI()
     {
-        GD.Print("🖥️ InitializeUI: Loading GameUI scene...");
+        DebugManager.Log(DebugCategory.UI_General, "Loading GameUI scene...", DebugLevel.Info);
         
         // Load the GameUI scene
         var gameUIScene = GD.Load<PackedScene>("res://Scenes/UI/GameUI.tscn");
         if (gameUIScene == null)
         {
-            GD.PrintErr("❌ Failed to load GameUI scene!");
+            DebugManager.Log(DebugCategory.UI_General, "Failed to load GameUI scene!", DebugLevel.Error);
             return;
         }
         
@@ -93,7 +95,7 @@ public partial class GameManager : Node
         _gameUI = gameUIScene.Instantiate<GameUI>();
         if (_gameUI == null)
         {
-            GD.PrintErr("❌ Failed to instantiate GameUI!");
+            DebugManager.Log(DebugCategory.UI_General, "Failed to instantiate GameUI!", DebugLevel.Error);
             return;
         }
         
@@ -102,13 +104,13 @@ public partial class GameManager : Node
         if (uiLayer != null)
         {
             uiLayer.AddChild(_gameUI);
-            GD.Print("🖥️ GameUI loaded and added to UILayer (CanvasLayer)");
+            DebugManager.Log(DebugCategory.UI_General, "GameUI loaded and added to UILayer (CanvasLayer)", DebugLevel.Info);
         }
         else
         {
             // Fallback: add to GameManager if UILayer not found
             AddChild(_gameUI);
-            GD.PrintErr("⚠️ UILayer not found, added GameUI to GameManager instead");
+            DebugManager.Log(DebugCategory.UI_General, "UILayer not found, added GameUI to GameManager instead", DebugLevel.Warning);
         }
         
         // Connect GameUI signals to GameManager methods
@@ -119,7 +121,7 @@ public partial class GameManager : Node
     {
         if (_gameUI == null)
         {
-            GD.PrintErr("❌ GameUI is null, cannot connect signals!");
+            DebugManager.Log(DebugCategory.UI_General, "GameUI is null, cannot connect signals!", DebugLevel.Error);
             return;
         }
         
@@ -127,18 +129,18 @@ public partial class GameManager : Node
         _gameUI.LevelUpRequested += OnLevelUpRequested;
         _gameUI.LevelDownRequested += OnLevelDownRequested;
         
-        GD.Print("🖥️ GameUI signals connected to GameManager");
+        DebugManager.Log(DebugCategory.UI_General, "GameUI signals connected to GameManager", DebugLevel.Info);
     }
     
     // Test button handlers
     private void OnLevelUpRequested()
     {
-        GD.Print("🎮 GameManager: Level up requested!");
+        DebugManager.Log(DebugCategory.Testing, "Level up requested!");
         
         if (PlayerData != null)
         {
             PlayerData.Level++;
-            GD.Print($"🎮 Player level increased to {PlayerData.Level}");
+            DebugManager.Log(DebugCategory.Player, $"Player level increased to {PlayerData.Level}");
             
             // Update UI with new data
             UpdatePlayerUI();
@@ -147,19 +149,19 @@ public partial class GameManager : Node
     
     private void OnLevelDownRequested()
     {
-        GD.Print("🎮 GameManager: Level down requested!");
+        DebugManager.Log(DebugCategory.Testing, "Level down requested!");
         
         if (PlayerData != null && PlayerData.Level > 1)
         {
             PlayerData.Level--;
-            GD.Print($"🎮 Player level decreased to {PlayerData.Level}");
+            DebugManager.Log(DebugCategory.Player, $"Player level decreased to {PlayerData.Level}");
             
             // Update UI with new data
             UpdatePlayerUI();
         }
         else
         {
-            GD.Print("🎮 Cannot decrease level below 1");
+            DebugManager.LogWarning(DebugCategory.Player, "Cannot decrease level below 1");
         }
     }
     
@@ -167,11 +169,11 @@ public partial class GameManager : Node
     {
         if (_gameUI == null)
         {
-            GD.Print("⚠️ GameUI is null, skipping UI update");
+            DebugManager.Log(DebugCategory.UI_General, "GameUI is null, skipping UI update", DebugLevel.Warning);
             return;
         }
         
-        GD.Print("🖥️ UpdateAllUI: Refreshing all UI panels...");
+        DebugManager.Log(DebugCategory.UI_General, "Refreshing all UI panels...", DebugLevel.Info);
         
         // Update Player Stats using new panel system
         UpdatePlayerUI();
@@ -179,7 +181,7 @@ public partial class GameManager : Node
         // Update other panels (still using old string method for now)
         UpdateOtherUIPanels();
         
-        GD.Print("🖥️ All UI panels updated successfully");
+        DebugManager.Log(DebugCategory.UI_General, "All UI panels updated successfully", DebugLevel.Info);
     }
     
     private void UpdatePlayerUI()
@@ -187,7 +189,7 @@ public partial class GameManager : Node
         if (_gameUI != null && PlayerData != null)
         {
             _gameUI.UpdatePlayerStats(PlayerData);
-            GD.Print("🖥️ PlayerStatsPanel updated with real PlayerData");
+            DebugManager.Log(DebugCategory.UI_PlayerStats, "PlayerStatsPanel updated with real PlayerData", DebugLevel.Verbose);
         }
     }
     

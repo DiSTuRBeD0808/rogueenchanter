@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// Combat System - Handles all combat logic
@@ -8,7 +10,7 @@ public partial class CombatSystem : Node
 {
     public override void _Ready()
     {
-        GD.Print("⚔️ CombatSystem: Ready for development");
+        DebugManager.Log(DebugCategory.Combat, "CombatSystem: Ready for development", DebugLevel.Info);
     }
     
     // TODO: Implement combat functionality

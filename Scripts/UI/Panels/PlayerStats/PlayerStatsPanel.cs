@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// Player statistics display panel
@@ -20,7 +22,7 @@ public partial class PlayerStatsPanel : BasePanel
     
     public override void Initialize()
     {
-        GD.Print("📊 PlayerStatsPanel: Initializing player stats display...");
+        DebugManager.Log(DebugCategory.UI_PlayerStats, "Initializing player stats display...", DebugLevel.Info);
         
         // Get all UI element references
         GetUIReferences();
@@ -28,7 +30,7 @@ public partial class PlayerStatsPanel : BasePanel
         // Set initial placeholder text
         SetPlaceholderText();
         
-        GD.Print("📊 PlayerStatsPanel: Initialization complete");
+        DebugManager.Log(DebugCategory.UI_PlayerStats, "Initialization complete", DebugLevel.Info);
     }
     
     private void GetUIReferences()
@@ -39,7 +41,7 @@ public partial class PlayerStatsPanel : BasePanel
         if (mainLabel == null)
         {
             // No existing label found, create our own
-            GD.Print("📊 PlayerStatsPanel: No existing label found, creating new one...");
+            DebugManager.Log(DebugCategory.UI_PlayerStats, "No existing label found, creating new one...", DebugLevel.Verbose);
             
             mainLabel = new Label();
             mainLabel.Name = "PlayerStatsLabel";
@@ -54,7 +56,7 @@ public partial class PlayerStatsPanel : BasePanel
             
             AddChild(mainLabel);
             
-            GD.Print("📊 PlayerStatsPanel: Created new PlayerStatsLabel with full layout");
+            DebugManager.Log(DebugCategory.UI_PlayerStats, "Created new PlayerStatsLabel with full layout", DebugLevel.Verbose);
         }
         
         // Use the main label for all stats (simple approach for now)
@@ -66,7 +68,7 @@ public partial class PlayerStatsPanel : BasePanel
         _experienceLabel = mainLabel;
         _critChanceLabel = mainLabel;
         
-        GD.Print("📊 PlayerStatsPanel: UI references set up successfully");
+        DebugManager.Log(DebugCategory.UI_PlayerStats, "UI references set up successfully", DebugLevel.Verbose);
     }
     
     private void SetPlaceholderText()
@@ -89,7 +91,7 @@ public partial class PlayerStatsPanel : BasePanel
         // Update the display
         UpdateDisplayText(statsText);
         
-        GD.Print("📊 PlayerStatsPanel: Display updated");
+        DebugManager.Log(DebugCategory.UI_PlayerStats, "Display updated", DebugLevel.Verbose);
     }
     
     /// <summary>
@@ -104,7 +106,7 @@ public partial class PlayerStatsPanel : BasePanel
             UpdateDisplay();
         }
         
-        GD.Print($"📊 PlayerStatsPanel: Player data updated - Level {playerData?.Level ?? 0}");
+        DebugManager.Log(DebugCategory.UI_PlayerStats, $"Player data updated - Level {playerData?.Level ?? 0}", DebugLevel.Verbose);
     }
     
     private string BuildStatsText(PlayerData playerData)
@@ -136,7 +138,7 @@ public partial class PlayerStatsPanel : BasePanel
         // Player stats panel typically doesn't have interactive elements
         // but if we add buttons later (like "View Details"), we'd connect them here
         
-        GD.Print("📊 PlayerStatsPanel: No signals to connect (display only)");
+        DebugManager.Log(DebugCategory.UI_PlayerStats, "No signals to connect (display only)", DebugLevel.Verbose);
     }
     
     protected override void OnPanelShown()

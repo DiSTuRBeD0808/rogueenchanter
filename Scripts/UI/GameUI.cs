@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// Main game UI controller for the 3x2 grid layout
@@ -33,7 +35,7 @@ public partial class GameUI : Control
     
     public override void _Ready()
     {
-        GD.Print("🖥️ GameUI: Initializing 3x2 grid layout with panel system...");
+        DebugManager.Log(DebugCategory.UI_General, "Initializing 3x2 grid layout with panel system...", DebugLevel.Info);
         
         // Initialize panels
         InitializePanels();
@@ -47,12 +49,12 @@ public partial class GameUI : Control
         // Connect button signals
         ConnectButtonSignals();
         
-        GD.Print("🖥️ GameUI: Layout ready with panel system!");
+        DebugManager.Log(DebugCategory.UI_General, "GameUI ready with all components initialized", DebugLevel.Info);
     }
     
     private void InitializePanels()
     {
-        GD.Print("🖥️ GameUI: Initializing panels...");
+        DebugManager.Log(DebugCategory.UI_General, "Initializing panels...", DebugLevel.Info);
         
         // Create and setup PlayerStatsPanel
         _playerStatsPanel = new PlayerStatsPanel();
@@ -80,18 +82,18 @@ public partial class GameUI : Control
             
             // Force the layout mode to container mode
             _playerStatsPanel.Set("layout_mode", 1); // 1 = anchors mode
-            
-            GD.Print("🖥️ GameUI: PlayerStatsPanel added to container");
+
+            DebugManager.Log(DebugCategory.UI_General, "PlayerStatsPanel added to container", DebugLevel.Info);
         }
         else
         {
-            GD.PrintErr("❌ GameUI: Could not find PlayerStats container!");
+            DebugManager.Log(DebugCategory.UI_General, "Could not find PlayerStats container!", DebugLevel.Error);
         }
     }
     
     private void CreateTestButtons()
     {
-        GD.Print("🖥️ GameUI: Creating test buttons for PlayerStatsPanel...");
+        DebugManager.Log(DebugCategory.UI_General, "Creating test buttons for PlayerStatsPanel...", DebugLevel.Info);
         
         // Get the existing GameButtons container
         var gameButtonsContainer = GetNodeOrNull<HBoxContainer>("GridContainer/GameDisplay/GameDisplayContent/GameButtons");
@@ -153,18 +155,18 @@ public partial class GameUI : Control
             parent.AddChild(buttonGridContainer);
             parent.MoveChild(buttonGridContainer, index);
             
-            GD.Print($"🖥️ GameUI: Button grid created with all 4 buttons");
-            GD.Print($"🖥️ GameUI: Attack button preserved: {attackButton != null}");
-            GD.Print($"🖥️ GameUI: Rest button preserved: {restButton != null}");
-            GD.Print($"�️ GameUI: Level Up button created: {_levelUpButton != null}");
-            GD.Print($"�️ GameUI: Level Down button created: {_levelDownButton != null}");
+            DebugManager.Log(DebugCategory.UI_General, "Button grid created with all 4 buttons", DebugLevel.Info);
+            DebugManager.Log(DebugCategory.UI_General, $"Attack button preserved: {attackButton != null}", DebugLevel.Info);
+            DebugManager.Log(DebugCategory.UI_General, $"Rest button preserved: {restButton != null}", DebugLevel.Info);
+            DebugManager.Log(DebugCategory.UI_General, $"Level Up button created: {_levelUpButton != null}", DebugLevel.Info);
+            DebugManager.Log(DebugCategory.UI_General, $"Level Down button created: {_levelDownButton != null}", DebugLevel.Info);
             
             // Debug: Check button properties
-            GD.Print($"🔍 DEBUG: Button grid children count: {buttonGridContainer.GetChildCount()}");
+            DebugManager.Log(DebugCategory.UI_General, $"Button grid children count: {buttonGridContainer.GetChildCount()}", DebugLevel.Verbose);
         }
         else
         {
-            GD.PrintErr("❌ GameUI: Could not find GameButtons container!");
+            DebugManager.Log(DebugCategory.UI_General, "Could not find GameButtons container!", DebugLevel.Error);
         }
     }
     
@@ -188,13 +190,13 @@ public partial class GameUI : Control
         if (_playerVisual != null)
         {
             _playerVisual.Visible = false;
-            GD.Print("🖥️ GameUI: Old PlayerVisual hidden");
+            DebugManager.Log(DebugCategory.UI_General, "Old PlayerVisual hidden", DebugLevel.Info);
         }
         
         // Add a new player visual to GameDisplay area
         CreateGameDisplayPlayerVisual();
-        
-        GD.Print("🖥️ GameUI: All UI references obtained");
+
+        DebugManager.Log(DebugCategory.UI_General, "All UI references obtained", DebugLevel.Info);
     }
     
     private void ConnectButtonSignals()
@@ -206,29 +208,29 @@ public partial class GameUI : Control
         if (_levelUpButton != null)
         {
             _levelUpButton.Pressed += OnLevelUpButtonPressed;
-            GD.Print("🖥️ GameUI: Level Up button signal connected");
+            DebugManager.Log(DebugCategory.UI_General, "Level Up button signal connected", DebugLevel.Info);
         }
         else
         {
-            GD.PrintErr("❌ GameUI: Level Up button is null, cannot connect signal");
+            DebugManager.Log(DebugCategory.UI_General, "Level Up button is null, cannot connect signal", DebugLevel.Error);
         }
         
         if (_levelDownButton != null)
         {
             _levelDownButton.Pressed += OnLevelDownButtonPressed;
-            GD.Print("🖥️ GameUI: Level Down button signal connected");
+            DebugManager.Log(DebugCategory.UI_General, "Level Down button signal connected", DebugLevel.Info);
         }
         else
         {
-            GD.PrintErr("❌ GameUI: Level Down button is null, cannot connect signal");
+            DebugManager.Log(DebugCategory.UI_General, "Level Down button is null, cannot connect signal", DebugLevel.Error);
         }
-        
-        GD.Print("🖥️ GameUI: Button signals connected (including test buttons)");
+
+        DebugManager.Log(DebugCategory.UI_General, "Button signals connected (including test buttons)", DebugLevel.Info);
     }
     
     private void CreateGameDisplayPlayerVisual()
     {
-        GD.Print("🖥️ GameUI: Creating player visual in GameDisplay...");
+        DebugManager.Log(DebugCategory.UI_General, "Creating player visual in GameDisplay...", DebugLevel.Info);
         
         // Get the GameDisplay content area
         var gameDisplayContent = GetNodeOrNull<VBoxContainer>("GridContainer/GameDisplay/GameDisplayContent");
@@ -267,40 +269,40 @@ public partial class GameUI : Control
                 // Just add it at the end
                 gameDisplayContent.AddChild(playerVisualContainer);
             }
-            
-            GD.Print("🖥️ GameUI: Player visual created in GameDisplay");
+
+            DebugManager.Log(DebugCategory.UI_General, "Player visual created in GameDisplay", DebugLevel.Info);
         }
         else
         {
-            GD.PrintErr("❌ GameUI: Could not find GameDisplay content area for player visual!");
+            DebugManager.Log(DebugCategory.UI_General, "Could not find GameDisplay content area for player visual!", DebugLevel.Error);
         }
     }
     
     // Placeholder signal handlers - GameManager will handle the actual logic
     private void OnAttackButtonPressed()
     {
-        GD.Print("🖥️ GameUI: Attack button pressed (placeholder)");
+        DebugManager.Log(DebugCategory.UI_General, "Attack button pressed (placeholder)", DebugLevel.Info);
         // TODO: Send signal to GameManager
     }
     
     private void OnRestButtonPressed()
     {
-        GD.Print("🖥️ GameUI: Rest button pressed (placeholder)");
+        DebugManager.Log(DebugCategory.UI_General, "Rest button pressed (placeholder)", DebugLevel.Info);
         // TODO: Send signal to GameManager  
     }
     
     // Test button signal handlers
     private void OnLevelUpButtonPressed()
     {
-        GD.Print("� GameUI: Level Up button ACTUALLY PRESSED!");
-        GD.Print("�🖥️ GameUI: Level Up button pressed - emitting signal");
+        DebugManager.Log(DebugCategory.UI_General, "Level Up button ACTUALLY PRESSED!", DebugLevel.Info);
+        DebugManager.Log(DebugCategory.UI_General, "Level Up button pressed - emitting signal", DebugLevel.Info);
         EmitSignal(SignalName.LevelUpRequested);
     }
     
     private void OnLevelDownButtonPressed()
     {
-        GD.Print("🔥 GameUI: Level Down button ACTUALLY PRESSED!");
-        GD.Print("🖥️ GameUI: Level Down button pressed - emitting signal");
+        DebugManager.Log(DebugCategory.UI_General, "Level Down button ACTUALLY PRESSED!", DebugLevel.Info);
+        DebugManager.Log(DebugCategory.UI_General, "Level Down button pressed - emitting signal", DebugLevel.Info);
         EmitSignal(SignalName.LevelDownRequested);
     }
     
@@ -310,11 +312,11 @@ public partial class GameUI : Control
         if (_playerStatsPanel != null)
         {
             _playerStatsPanel.UpdatePlayerData(playerData);
-            GD.Print("🖥️ GameUI: PlayerStatsPanel updated with new data");
+            DebugManager.Log(DebugCategory.UI_General, "PlayerStatsPanel updated with new data", DebugLevel.Info);
         }
         else
         {
-            GD.PrintErr("❌ GameUI: PlayerStatsPanel is null!");
+            DebugManager.Log(DebugCategory.UI_General, "PlayerStatsPanel is null!", DebugLevel.Error);
         }
     }
     
@@ -352,7 +354,7 @@ public partial class GameUI : Control
     {
         // For now, we can add this text to the GameDisplay area
         // In the future, this might update specific game display elements
-        GD.Print($"🖥️ GameUI: Game Display updated: {displayText}");
+        DebugManager.Log(DebugCategory.UI_General, $"Game Display updated: {displayText}", DebugLevel.Info);
         // TODO: Find appropriate place to display this text in the GameDisplay panel
     }
     

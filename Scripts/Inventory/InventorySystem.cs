@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// Inventory System - Handles items, equipment, and gold
@@ -8,7 +10,7 @@ public partial class InventorySystem : Node
 {
     public override void _Ready()
     {
-        GD.Print("🎒 InventorySystem: Ready for development");
+        DebugManager.Log(DebugCategory.Inventory, "InventorySystem: Ready for development", DebugLevel.Info);
     }
     
     // TODO: Implement inventory functionality

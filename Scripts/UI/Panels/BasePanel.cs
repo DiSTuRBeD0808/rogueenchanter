@@ -1,4 +1,6 @@
 using Godot;
+using RogueEnchanter.Systems;
+using RogueEnchanter.Models.Enums;
 
 /// <summary>
 /// Base class for all UI panels in the game
@@ -25,7 +27,7 @@ public abstract partial class BasePanel : Control
     
     public override void _Ready()
     {
-        GD.Print($"🎯 {GetType().Name}: Initializing panel...");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Initializing panel...", DebugLevel.Info);
         
         // Initialize the panel
         Initialize();
@@ -34,7 +36,7 @@ public abstract partial class BasePanel : Control
         ConnectSignals();
         
         _isInitialized = true;
-        GD.Print($"🎯 {GetType().Name}: Panel ready!");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Panel ready!", DebugLevel.Info);
     }
     
     /// <summary>
@@ -56,7 +58,7 @@ public abstract partial class BasePanel : Control
     protected virtual void ConnectSignals()
     {
         // Base implementation - can be overridden
-        GD.Print($"🎯 {GetType().Name}: Base signal connections (none)");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Base signal connections (none)", DebugLevel.Verbose);
     }
     
     /// <summary>
@@ -84,7 +86,7 @@ public abstract partial class BasePanel : Control
     /// </summary>
     protected virtual void OnPanelShown()
     {
-        GD.Print($"🎯 {GetType().Name}: Panel shown");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Panel shown", DebugLevel.Verbose);
     }
     
     /// <summary>
@@ -92,7 +94,7 @@ public abstract partial class BasePanel : Control
     /// </summary>
     protected virtual void OnPanelHidden()
     {
-        GD.Print($"🎯 {GetType().Name}: Panel hidden");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Panel hidden", DebugLevel.Verbose);
     }
     
     /// <summary>
@@ -100,7 +102,7 @@ public abstract partial class BasePanel : Control
     /// </summary>
     protected void RequestAction(string action, Variant data = default)
     {
-        GD.Print($"🎯 {GetType().Name}: Requesting action '{action}' with data: {data}");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Requesting action '{action}' with data: {data}", DebugLevel.Info);
         EmitSignal(SignalName.PanelActionRequested, action, data);
     }
     
@@ -109,7 +111,7 @@ public abstract partial class BasePanel : Control
     /// </summary>
     protected void RequestVisibilityChange(string panelAction, string targetPanel = "")
     {
-        GD.Print($"🎯 {GetType().Name}: Requesting visibility change '{panelAction}' -> '{targetPanel}'");
+        DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Requesting visibility change '{panelAction}' -> '{targetPanel}'", DebugLevel.Info);
         EmitSignal(SignalName.PanelVisibilityRequested, panelAction, targetPanel);
     }
     
@@ -121,7 +123,7 @@ public abstract partial class BasePanel : Control
         var node = GetNode<T>(path);
         if (node == null)
         {
-            GD.PrintErr($"❌ {GetType().Name}: Failed to find node at path '{path}'");
+            DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Failed to find node at path '{path}'", DebugLevel.Error);
         }
         return node;
     }
