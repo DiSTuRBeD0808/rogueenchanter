@@ -36,6 +36,10 @@ public abstract partial class BasePanel : Control
         ConnectSignals();
         
         _isInitialized = true;
+        
+        // Trigger initial display update after initialization is complete
+        UpdateDisplay();
+        
         DebugManager.Log(DebugCategory.UI_Panels, $"{GetType().Name}: Panel ready!", DebugLevel.Info);
     }
     

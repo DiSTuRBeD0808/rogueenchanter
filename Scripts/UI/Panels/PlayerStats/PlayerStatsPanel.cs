@@ -30,6 +30,13 @@ public partial class PlayerStatsPanel : BasePanel
         // Set initial placeholder text
         SetPlaceholderText();
         
+        // If we already have player data, update the display immediately
+        if (_currentPlayerData != null)
+        {
+            UpdateDisplay();
+            DebugManager.Log(DebugCategory.UI_PlayerStats, "Initial player data found, display updated immediately", DebugLevel.Verbose);
+        }
+        
         DebugManager.Log(DebugCategory.UI_PlayerStats, "Initialization complete", DebugLevel.Info);
     }
     
@@ -104,6 +111,10 @@ public partial class PlayerStatsPanel : BasePanel
         if (_isInitialized)
         {
             UpdateDisplay();
+        }
+        else
+        {
+            DebugManager.Log(DebugCategory.UI_PlayerStats, "Panel not yet initialized, player data stored for later display", DebugLevel.Verbose);
         }
         
         DebugManager.Log(DebugCategory.UI_PlayerStats, $"Player data updated - Level {playerData?.Level ?? 0}", DebugLevel.Verbose);
