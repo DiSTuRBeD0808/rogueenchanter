@@ -4,11 +4,8 @@
 public enum GameState
 {
     Menu,
-    Playing,
-    Paused,
-    Inventory,
-    Shop,
-    GameOver
+    Combat,
+    Rest
 }
 
 /// <summary>
@@ -17,21 +14,17 @@ public enum GameState
 public enum CombatState
 {
     Idle,
-    PlayerTurn,
-    EnemyTurn,
-    Processing,
     Victory,
     Defeat
 }
 
 /// <summary>
-/// UI panel states
+/// State transition types for the state management system
 /// </summary>
-public enum UIState
+public enum StateTransition
 {
-    MainGame,
-    Inventory,
-    Shop,
-    Settings,
-    Paused
+    StartCombat,    // Rest → Combat
+    EndCombat,      // Combat → Rest
+    EnterMenu,      // Any → Menu
+    ExitMenu        // Menu → Rest
 }

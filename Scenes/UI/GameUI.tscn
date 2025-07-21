@@ -58,7 +58,9 @@ size_flags_vertical = 3
 [node name="PlayerVisual" type="ColorRect" parent="GridContainer/GameDisplay/GameDisplayContent/GameVisuals"]
 layout_mode = 1
 anchors_preset = 4
+anchor_left = 0.0
 anchor_top = 0.5
+anchor_right = 0.0
 anchor_bottom = 0.5
 offset_left = 100.0
 offset_top = -30.0
@@ -87,6 +89,7 @@ offset_top = -30.0
 offset_right = -100.0
 offset_bottom = 30.0
 color = Color(1, 0, 0, 1)
+visible = false
 
 [node name="EnemyLabel" type="Label" parent="GridContainer/GameDisplay/GameDisplayContent/GameVisuals/EnemyVisual"]
 layout_mode = 1
@@ -107,7 +110,7 @@ text = "ATTACK"
 
 [node name="RestButton" type="Button" parent="GridContainer/GameDisplay/GameDisplayContent/GameButtons"]
 layout_mode = 2
-text = "ENTER/EXIT REST"
+text = "REST"
 
 [node name="EnemyAndCombatStats" type="Panel" parent="GridContainer"]
 layout_mode = 2

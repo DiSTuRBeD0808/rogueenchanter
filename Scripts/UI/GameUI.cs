@@ -1,6 +1,7 @@
 using Godot;
 using RogueEnchanter.Systems;
 using RogueEnchanter.Models.Enums;
+using RogueEnchanter.Models;
 
 /// <summary>
 /// Main game UI controller for the 3x2 grid layout
@@ -11,6 +12,7 @@ public partial class GameUI : Control
 {
     // Panel References
     private PlayerStatsPanel _playerStatsPanel;
+    private EnemyPanel _enemyPanel;
     
     // UI References (for non-panel elements)
     private Label _enemyStatsLabel;
@@ -29,9 +31,16 @@ public partial class GameUI : Control
     private ColorRect _playerVisual;
     private ColorRect _enemyVisual;
     
+    // State indicator
+    private Label _stateIndicatorLabel;
+    
     // Signals for test buttons
     [Signal] public delegate void LevelUpRequestedEventHandler();
     [Signal] public delegate void LevelDownRequestedEventHandler();
+    
+    // Signals for game state transitions
+    [Signal] public delegate void AttackRequestedEventHandler();
+    [Signal] public delegate void RestRequestedEventHandler();
     
     public override void _Ready()
     {
@@ -82,12 +91,55 @@ public partial class GameUI : Control
             
             // Force the layout mode to container mode
             _playerStatsPanel.Set("layout_mode", 1); // 1 = anchors mode
+            
+            // Initialize will be called automatically by BasePanel._Ready()
 
-            DebugManager.Log(DebugCategory.UI_General, "PlayerStatsPanel added to container", DebugLevel.Info);
+            DebugManager.Log(DebugCategory.UI_General, "PlayerStatsPanel added to container (will auto-initialize)", DebugLevel.Info);
         }
         else
         {
             DebugManager.Log(DebugCategory.UI_General, "Could not find PlayerStats container!", DebugLevel.Error);
+        }
+        
+        // Create and setup EnemyPanel
+        _enemyPanel = new EnemyPanel();
+        
+        // Get the EnemyAndCombatStats container (this will be our enemy panel location)
+        var enemyStatsContainer = GetNode<Panel>("GridContainer/EnemyAndCombatStats");
+        if (enemyStatsContainer != null)
+        {
+            // For now, replace the existing EnemyStatsLabel with our EnemyPanel
+            var existingEnemyLabel = enemyStatsContainer.GetNodeOrNull<Label>("EnemyAndCombatContent/EnemyStatsLabel");
+            if (existingEnemyLabel != null)
+            {
+                // Get the parent container where the label was
+                var enemyContentContainer = existingEnemyLabel.GetParent();
+                
+                // Remove the old label
+                existingEnemyLabel.QueueFree();
+                
+                // Add our EnemyPanel to the content container
+                enemyContentContainer.AddChild(_enemyPanel);
+                _enemyPanel.Name = "EnemyPanel";
+                
+                // Set layout properties
+                _enemyPanel.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+                _enemyPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+                _enemyPanel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+                _enemyPanel.Set("layout_mode", 1); // 1 = anchors mode
+                
+                // Initialize will be called automatically by BasePanel._Ready()
+                
+                DebugManager.Log(DebugCategory.UI_General, "EnemyPanel added to EnemyAndCombatStats container (will auto-initialize)", DebugLevel.Info);
+            }
+            else
+            {
+                DebugManager.Log(DebugCategory.UI_General, "Could not find existing EnemyStatsLabel!", DebugLevel.Warning);
+            }
+        }
+        else
+        {
+            DebugManager.Log(DebugCategory.UI_General, "Could not find EnemyAndCombatStats container!", DebugLevel.Error);
         }
     }
     
@@ -187,6 +239,8 @@ public partial class GameUI : Control
         _enemyVisual = GetNode<ColorRect>("GridContainer/GameDisplay/GameDisplayContent/GameVisuals/EnemyVisual");
         
         // Hide the old player visual since we're using PlayerStatsPanel now
+        // TODO: This will be moved to GameDisplay panel later
+        /*
         if (_playerVisual != null)
         {
             _playerVisual.Visible = false;
@@ -195,6 +249,7 @@ public partial class GameUI : Control
         
         // Add a new player visual to GameDisplay area
         CreateGameDisplayPlayerVisual();
+        */
 
         DebugManager.Log(DebugCategory.UI_General, "All UI references obtained", DebugLevel.Info);
     }
@@ -230,12 +285,31 @@ public partial class GameUI : Control
     
     private void CreateGameDisplayPlayerVisual()
     {
-        DebugManager.Log(DebugCategory.UI_General, "Creating player visual in GameDisplay...", DebugLevel.Info);
+        DebugManager.Log(DebugCategory.UI_General, "Creating player visual and state indicator in GameDisplay...", DebugLevel.Info);
         
         // Get the GameDisplay content area
         var gameDisplayContent = GetNodeOrNull<VBoxContainer>("GridContainer/GameDisplay/GameDisplayContent");
         if (gameDisplayContent != null)
         {
+            // Create state indicator at the top
+            _stateIndicatorLabel = new Label();
+            _stateIndicatorLabel.Name = "StateIndicatorLabel";
+            _stateIndicatorLabel.Text = "STATE: Rest";
+            _stateIndicatorLabel.HorizontalAlignment = HorizontalAlignment.Center;
+            _stateIndicatorLabel.VerticalAlignment = VerticalAlignment.Center;
+            _stateIndicatorLabel.AddThemeStyleboxOverride("normal", new StyleBoxFlat());
+            
+            // Style the state indicator
+            var stateStyleBox = new StyleBoxFlat();
+            stateStyleBox.BgColor = Colors.DarkBlue;
+            stateStyleBox.BorderColor = Colors.White;
+            stateStyleBox.BorderWidthTop = 2;
+            stateStyleBox.BorderWidthBottom = 2;
+            stateStyleBox.BorderWidthLeft = 2;
+            stateStyleBox.BorderWidthRight = 2;
+            _stateIndicatorLabel.AddThemeStyleboxOverride("normal", stateStyleBox);
+            _stateIndicatorLabel.CustomMinimumSize = new Vector2(120, 30);
+            
             // Create a container for the player visual
             var playerVisualContainer = new HBoxContainer();
             playerVisualContainer.Name = "PlayerVisualContainer";
@@ -255,6 +329,9 @@ public partial class GameUI : Control
             playerVisualContainer.AddChild(playerRect);
             playerVisualContainer.AddChild(playerLabel);
             
+            // Add state indicator first, then player visual
+            gameDisplayContent.AddChild(_stateIndicatorLabel);
+            
             // Add the container to GameDisplay (insert before test buttons)
             var testButtonContainer = gameDisplayContent.GetNodeOrNull("TestButtonContainer");
             if (testButtonContainer != null)
@@ -270,7 +347,7 @@ public partial class GameUI : Control
                 gameDisplayContent.AddChild(playerVisualContainer);
             }
 
-            DebugManager.Log(DebugCategory.UI_General, "Player visual created in GameDisplay", DebugLevel.Info);
+            DebugManager.Log(DebugCategory.UI_General, "Player visual and state indicator created in GameDisplay", DebugLevel.Info);
         }
         else
         {
@@ -281,14 +358,14 @@ public partial class GameUI : Control
     // Placeholder signal handlers - GameManager will handle the actual logic
     private void OnAttackButtonPressed()
     {
-        DebugManager.Log(DebugCategory.UI_General, "Attack button pressed (placeholder)", DebugLevel.Info);
-        // TODO: Send signal to GameManager
+        DebugManager.Log(DebugCategory.UI_General, "Attack button pressed - emitting signal", DebugLevel.Info);
+        EmitSignal(SignalName.AttackRequested);
     }
     
     private void OnRestButtonPressed()
     {
-        DebugManager.Log(DebugCategory.UI_General, "Rest button pressed (placeholder)", DebugLevel.Info);
-        // TODO: Send signal to GameManager  
+        DebugManager.Log(DebugCategory.UI_General, "Rest button pressed - emitting signal", DebugLevel.Info);
+        EmitSignal(SignalName.RestRequested);
     }
     
     // Test button signal handlers
@@ -322,8 +399,48 @@ public partial class GameUI : Control
     
     public void UpdateEnemyStats(string statsText)
     {
-        if (_enemyStatsLabel != null)
-            _enemyStatsLabel.Text = statsText;
+        if (_combatStatsLabel != null)
+            _combatStatsLabel.Text = statsText;
+        
+        // Note: Enemy stats are now handled by UpdateEnemyData method and EnemyPanel
+    }
+    
+    /// <summary>
+    /// Update the enemy panel with new enemy data
+    /// </summary>
+    public void UpdateEnemyData(EnemyData enemyData)
+    {
+        if (_enemyPanel != null)
+        {
+            _enemyPanel.UpdateEnemyData(enemyData);
+            DebugManager.Log(DebugCategory.UI_General, "EnemyPanel updated with new data", DebugLevel.Info);
+        }
+        else
+        {
+            DebugManager.Log(DebugCategory.UI_General, "EnemyPanel is null!", DebugLevel.Error);
+        }
+    }
+    
+    /// <summary>
+    /// Update enemy energy bar
+    /// </summary>
+    public void UpdateEnemyEnergy(float energy)
+    {
+        if (_enemyPanel != null)
+        {
+            _enemyPanel.UpdateEnemyEnergy(energy);
+        }
+    }
+    
+    /// <summary>
+    /// Set enemy combat state
+    /// </summary>
+    public void SetEnemyCombatState(bool inCombat)
+    {
+        if (_enemyPanel != null)
+        {
+            _enemyPanel.SetCombatState(inCombat);
+        }
     }
     
     public void UpdateCombatStats(string statsText)
@@ -368,5 +485,31 @@ public partial class GameUI : Control
     {
         if (_attackButton != null)
             _attackButton.Disabled = !enabled;
+    }
+    
+    /// <summary>
+    /// Update the state indicator label
+    /// </summary>
+    public void UpdateStateIndicator(GameState currentState)
+    {
+        if (_stateIndicatorLabel != null)
+        {
+            _stateIndicatorLabel.Text = $"STATE: {currentState}";
+            
+            // Change color based on state
+            var stateStyleBox = (StyleBoxFlat)_stateIndicatorLabel.GetThemeStylebox("normal");
+            if (stateStyleBox != null)
+            {
+                stateStyleBox.BgColor = currentState switch
+                {
+                    GameState.Rest => Colors.DarkBlue,
+                    GameState.Combat => Colors.DarkRed,
+                    GameState.Menu => Colors.DarkGreen,
+                    _ => Colors.Gray
+                };
+            }
+            
+            DebugManager.Log(DebugCategory.UI_General, $"State indicator updated to: {currentState}", DebugLevel.Info);
+        }
     }
 }

@@ -14,6 +14,7 @@ public enum DebugCategory
     UI_General,
     UI_Panels,
     UI_PlayerStats,
+    UI_Enemy,
     UI_Buttons,
     UI_Layout,
     

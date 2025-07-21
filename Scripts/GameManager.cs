@@ -9,8 +9,9 @@ using RogueEnchanter.Models.Enums;
 /// </summary>
 public partial class GameManager : Node
 {
-    // Game State
-    public GameState CurrentState { get; private set; } = GameState.Menu;
+    // Game State Management
+    private StateManagementSystem _stateManager;
+    public GameState CurrentState => _stateManager?.CurrentState ?? GameState.Menu;
     
     // Game Data (pure C# models from Models folder)
     public PlayerData PlayerData { get; private set; }
@@ -24,6 +25,9 @@ public partial class GameManager : Node
     {
         DebugManager.Log(DebugCategory.GameManager, "Starting minimal setup...");
         
+        // Initialize state management system
+        InitializeStateManagement();
+        
         // Initialize basic game data
         InitializeGameData();
         
@@ -33,8 +37,8 @@ public partial class GameManager : Node
         // Test the models work
         TestModels();
         
-        // Update UI with initial data
-        UpdateAllUI();
+        // Update UI with initial data (deferred to allow panels to initialize first)
+        CallDeferred(MethodName.UpdateAllUI);
         
         DebugManager.Log(DebugCategory.GameManager, "Ready for development!");
     }
@@ -56,6 +60,23 @@ public partial class GameManager : Node
         DebugManager.LogVerbose(DebugCategory.GameData, $"GameSession created - PlayTime: {Session.PlayTime}");
         
         DebugManager.Log(DebugCategory.GameData, "Basic game data initialized successfully");
+    }
+
+    private void InitializeStateManagement()
+    {
+        DebugManager.Log(DebugCategory.GameManager, "Initializing state management system...", DebugLevel.Info);
+        
+        // Create and add the state management system
+        _stateManager = new StateManagementSystem();
+        AddChild(_stateManager);
+        
+        // Connect to state change events
+        _stateManager.StateChanged += OnStateChanged;
+        
+        // Start in Rest state (main game)
+        _stateManager.TransitionToState(GameState.Rest);
+        
+        DebugManager.Log(DebugCategory.GameManager, "State management system initialized", DebugLevel.Info);
     }
     
     private void TestModels()
@@ -125,11 +146,15 @@ public partial class GameManager : Node
             return;
         }
         
+        // Connect state transition signals
+        _gameUI.AttackRequested += OnAttackButtonPressed;
+        _gameUI.RestRequested += OnRestButtonPressed;
+        
         // Connect test button signals
         _gameUI.LevelUpRequested += OnLevelUpRequested;
         _gameUI.LevelDownRequested += OnLevelDownRequested;
         
-        DebugManager.Log(DebugCategory.UI_General, "GameUI signals connected to GameManager", DebugLevel.Info);
+        DebugManager.Log(DebugCategory.UI_General, "GameUI signals connected to GameManager (including state transitions)", DebugLevel.Info);
     }
     
     // Test button handlers
@@ -175,6 +200,12 @@ public partial class GameManager : Node
         
         DebugManager.Log(DebugCategory.UI_General, "Refreshing all UI panels...", DebugLevel.Info);
         
+        // Update state indicator first
+        if (_stateManager != null)
+        {
+            _gameUI.UpdateStateIndicator(_stateManager.CurrentState);
+        }
+        
         // Update Player Stats using new panel system
         UpdatePlayerUI();
         
@@ -219,18 +250,140 @@ public partial class GameManager : Node
         string runes = "RUNE UPGRADES\nActive Runes: 0/5\n\nAvailable:\n- Fire Rune\n- Ice Rune\n- Lightning Rune\n\n[Upgrade] [Equip] [Info]";
         _gameUI.UpdateRuneUpgrades(runes);
     }
-    
-    // TODO: Implement system references
-    // private void GetSystemReferences() { }
-    
-    // TODO: Implement signal connections
-    // private void ConnectSystemSignals() { }
-    
-    // TODO: Implement state management
-    // public void TransitionToState(GameState newState) { }
-    
-    // TODO: Implement event handlers
-    // private void OnAttackButtonPressed() { }
-    // private void OnInventoryToggled(bool isOpen) { }
-    // etc.
+
+    /// <summary>
+    /// Handle state changes from the StateManagementSystem
+    /// </summary>
+    private void OnStateChanged(GameState newState, GameState previousState)
+    {
+        DebugManager.Log(DebugCategory.GameManager, $"Game state changed: {previousState} → {newState}", DebugLevel.Info);
+        
+        // Update UI based on new state
+        UpdateUIForState(newState);
+        
+        // Handle state-specific logic
+        switch (newState)
+        {
+            case GameState.Rest:
+                OnEnterRestState();
+                break;
+                
+            case GameState.Combat:
+                OnEnterCombatState();
+                break;
+                
+            case GameState.Menu:
+                OnEnterMenuState();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Update UI elements based on current game state
+    /// </summary>
+    private void UpdateUIForState(GameState state)
+    {
+        if (_gameUI == null) return;
+        
+        // Update state indicator
+        _gameUI.UpdateStateIndicator(state);
+        
+        switch (state)
+        {
+            case GameState.Rest:
+                _gameUI.SetAttackButtonEnabled(true);  // Can start combat
+                _gameUI.SetEnemyVisible(false);         // No enemy during rest
+                _gameUI.SetEnemyCombatState(false);     // Enemy panel not in combat
+                break;
+                
+            case GameState.Combat:
+                _gameUI.SetAttackButtonEnabled(false); // Can't start another combat
+                _gameUI.SetEnemyVisible(true);          // Show enemy during combat
+                _gameUI.SetEnemyCombatState(true);      // Enemy panel in combat
+                break;
+                
+            case GameState.Menu:
+                // Menu state UI updates can be added here
+                break;
+        }
+    }
+
+    // State-specific enter methods
+    private void OnEnterRestState()
+    {
+        DebugManager.Log(DebugCategory.GameManager, "Player is now resting - can explore, manage inventory, or start combat", DebugLevel.Info);
+        
+        // Update UI text to reflect rest state
+        UpdateOtherUIPanels(); // Refresh all panels for rest state
+    }
+
+    private void OnEnterCombatState()
+    {
+        DebugManager.Log(DebugCategory.GameManager, "Combat has started!", DebugLevel.Info);
+        
+        // TODO: Spawn enemy
+        // TODO: Initialize combat systems
+        // TODO: Update combat UI
+        UpdateOtherUIPanels(); // Refresh all panels for combat state
+    }
+
+    private void OnEnterMenuState()
+    {
+        DebugManager.Log(DebugCategory.GameManager, "Player opened the menu", DebugLevel.Info);
+        
+        // TODO: Pause game logic
+        // TODO: Show menu panels
+    }
+
+    /// <summary>
+    /// Public method for requesting state transitions (can be called by UI or other systems)
+    /// </summary>
+    public void RequestStateTransition(StateTransition transition)
+    {
+        if (_stateManager != null)
+        {
+            _stateManager.RequestStateTransition(transition);
+        }
+        else
+        {
+            DebugManager.LogWarning(DebugCategory.GameManager, "StateManagementSystem is null, cannot transition state");
+        }
+    }
+
+    /// <summary>
+    /// Check if a specific action can be performed in the current state
+    /// </summary>
+    public bool CanPerformAction(string action)
+    {
+        return _stateManager?.CanPerformAction(action) ?? false;
+    }
+
+    // Button event handlers (to be connected to UI)
+    private void OnAttackButtonPressed()
+    {
+        DebugManager.Log(DebugCategory.GameManager, "Attack button pressed", DebugLevel.Info);
+        
+        if (CanPerformAction("attack"))
+        {
+            RequestStateTransition(StateTransition.StartCombat);
+        }
+        else
+        {
+            DebugManager.LogWarning(DebugCategory.GameManager, "Cannot start combat in current state");
+        }
+    }
+
+    private void OnRestButtonPressed()
+    {
+        DebugManager.Log(DebugCategory.GameManager, "Rest button pressed", DebugLevel.Info);
+        
+        if (CanPerformAction("rest"))
+        {
+            RequestStateTransition(StateTransition.EndCombat);
+        }
+        else
+        {
+            DebugManager.LogWarning(DebugCategory.GameManager, "Cannot rest in current state");
+        }
+    }
 }
